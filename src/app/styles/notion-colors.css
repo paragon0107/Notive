@@ -47,3 +47,134 @@
   color: var(--notion-red);
   border: 1px solid var(--notion-red);
 }
+
+/* Light mode only: keep Notion hues but increase color presence on category tags. */
+:root[data-theme="light"] .category-pill {
+  font-weight: 500;
+}
+
+:root[data-theme="light"] .category-pill.color-default {
+  color: var(--notion-default);
+  border-color: color-mix(in srgb, var(--notion-default) 22%, #ffffff);
+  background: color-mix(in srgb, var(--notion-default) 10%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-gray {
+  color: var(--notion-gray);
+  border-color: color-mix(in srgb, var(--notion-gray) 36%, #ffffff);
+  background: color-mix(in srgb, var(--notion-gray) 14%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-brown {
+  color: var(--notion-brown);
+  border-color: color-mix(in srgb, var(--notion-brown) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-brown) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-orange {
+  color: var(--notion-orange);
+  border-color: color-mix(in srgb, var(--notion-orange) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-orange) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-yellow {
+  color: color-mix(in srgb, var(--notion-yellow) 80%, #4e3a00);
+  border-color: color-mix(in srgb, var(--notion-yellow) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-yellow) 22%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-green {
+  color: var(--notion-green);
+  border-color: color-mix(in srgb, var(--notion-green) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-green) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-blue {
+  color: var(--notion-blue);
+  border-color: color-mix(in srgb, var(--notion-blue) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-blue) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-purple {
+  color: var(--notion-purple);
+  border-color: color-mix(in srgb, var(--notion-purple) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-purple) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-pink {
+  color: var(--notion-pink);
+  border-color: color-mix(in srgb, var(--notion-pink) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-pink) 18%, #ffffff);
+}
+
+:root[data-theme="light"] .category-pill.color-red {
+  color: var(--notion-red);
+  border-color: color-mix(in srgb, var(--notion-red) 58%, #ffffff);
+  background: color-mix(in srgb, var(--notion-red) 18%, #ffffff);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .category-pill {
+    font-weight: 500;
+  }
+
+  :root:not([data-theme]) .category-pill.color-default {
+    color: var(--notion-default);
+    border-color: color-mix(in srgb, var(--notion-default) 22%, #ffffff);
+    background: color-mix(in srgb, var(--notion-default) 10%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-gray {
+    color: var(--notion-gray);
+    border-color: color-mix(in srgb, var(--notion-gray) 36%, #ffffff);
+    background: color-mix(in srgb, var(--notion-gray) 14%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-brown {
+    color: var(--notion-brown);
+    border-color: color-mix(in srgb, var(--notion-brown) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-brown) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-orange {
+    color: var(--notion-orange);
+    border-color: color-mix(in srgb, var(--notion-orange) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-orange) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-yellow {
+    color: color-mix(in srgb, var(--notion-yellow) 80%, #4e3a00);
+    border-color: color-mix(in srgb, var(--notion-yellow) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-yellow) 22%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-green {
+    color: var(--notion-green);
+    border-color: color-mix(in srgb, var(--notion-green) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-green) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-blue {
+    color: var(--notion-blue);
+    border-color: color-mix(in srgb, var(--notion-blue) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-blue) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-purple {
+    color: var(--notion-purple);
+    border-color: color-mix(in srgb, var(--notion-purple) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-purple) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-pink {
+    color: var(--notion-pink);
+    border-color: color-mix(in srgb, var(--notion-pink) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-pink) 18%, #ffffff);
+  }
+
+  :root:not([data-theme]) .category-pill.color-red {
+    color: var(--notion-red);
+    border-color: color-mix(in srgb, var(--notion-red) 58%, #ffffff);
+    background: color-mix(in srgb, var(--notion-red) 18%, #ffffff);
+  }
+}
