@@ -17,7 +17,6 @@ import {
   getNumberProperty,
   getRelationPropertyIds,
   getRichTextProperty,
-  getSelectProperty,
   getTitleProperty,
 } from "@/libs/notion/properties";
 
@@ -33,12 +32,9 @@ const mapProject = (page: PageObjectResponse): Project => ({
 });
 
 const mapContact = (page: PageObjectResponse): Contact => {
-  const label = getRichTextProperty(page, "Label") || getTitleProperty(page);
-
   return {
     id: page.id,
-    type: getSelectProperty(page, "Type") || "Custom",
-    label,
+    name: getTitleProperty(page),
     value: getRichTextProperty(page, "Value") || "",
     iconUrl: getFilesProperty(page, "Icon"),
     order: getNumberProperty(page, "Order"),

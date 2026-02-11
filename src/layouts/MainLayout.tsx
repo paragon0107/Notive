@@ -7,7 +7,7 @@ import { RightSidebar } from "@/layouts/parts/RightSidebar";
 type Props = {
   home: HomeConfig;
   tocItems?: TocItem[];
-  rightCategories?: Category[];
+  leftCategories?: Category[];
   categoryFilterPath?: string;
   activeCategorySlug?: string;
   rightPanelMode?: "profile" | "toc";
@@ -17,26 +17,26 @@ type Props = {
 export const MainLayout = ({
   home,
   tocItems,
-  rightCategories,
+  leftCategories,
   categoryFilterPath,
   activeCategorySlug,
   rightPanelMode = "profile",
   children,
 }: Props) => {
-  const renderDefaultSidebar = () => (
-    <RightSidebar
+  const renderDefaultLeftSidebar = () => (
+    <LeftSidebar
       tocItems={tocItems}
-      categories={rightCategories}
+      categories={leftCategories}
       categoryFilterPath={categoryFilterPath}
       activeCategorySlug={activeCategorySlug}
     />
   );
 
-  const renderTocSidebar = () => <RightSidebar tocItems={tocItems} />;
+  const renderRightTocSidebar = () => <LeftSidebar tocItems={tocItems} />;
 
-  const renderCategorySidebar = () => (
-    <RightSidebar
-      categories={rightCategories}
+  const renderCategoryLeftSidebar = () => (
+    <LeftSidebar
+      categories={leftCategories}
       categoryFilterPath={categoryFilterPath}
       activeCategorySlug={activeCategorySlug}
     />
@@ -47,11 +47,11 @@ export const MainLayout = ({
       <Header blogName={home.blogName} categories={home.categories} />
       <div className="layout">
         <aside className="sidebar-left">
-          {rightPanelMode === "toc" ? renderCategorySidebar() : renderDefaultSidebar()}
+          {rightPanelMode === "toc" ? renderCategoryLeftSidebar() : renderDefaultLeftSidebar()}
         </aside>
         <main className="main">{children}</main>
         <aside className="sidebar-right">
-          {rightPanelMode === "toc" ? renderTocSidebar() : <LeftSidebar home={home} />}
+          {rightPanelMode === "toc" ? renderRightTocSidebar() : <RightSidebar home={home} />}
         </aside>
       </div>
     </div>

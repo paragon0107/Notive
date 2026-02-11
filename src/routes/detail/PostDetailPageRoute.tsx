@@ -74,7 +74,7 @@ export const PostDetailPageRoute = ({ slug }: Props) => {
     <MainLayout
       home={resolvedHome}
       tocItems={tocItems}
-      rightCategories={resolvedHome.categories}
+      leftCategories={resolvedHome.categories}
       categoryFilterPath="/"
       rightPanelMode="toc"
     >

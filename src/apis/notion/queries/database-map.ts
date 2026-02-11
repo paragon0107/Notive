@@ -63,13 +63,17 @@ const buildDatabaseMap = (blocks: Array<BlockObjectResponse & { type: "child_dat
 };
 
 let databaseMapPromise: Promise<DatabaseMap> | null = null;
+let databaseMapExpiresAt = 0;
+const DATABASE_MAP_CACHE_TTL_MS = 30 * 1000;
 
 export const getDatabaseMap = async (): Promise<DatabaseMap> => {
-  if (!databaseMapPromise) {
+  const now = Date.now();
+  if (!databaseMapPromise || now >= databaseMapExpiresAt) {
     databaseMapPromise = (async () => {
       const blocks = await listChildDatabases();
       return buildDatabaseMap(blocks);
     })();
+    databaseMapExpiresAt = now + DATABASE_MAP_CACHE_TTL_MS;
   }
 
   return databaseMapPromise;

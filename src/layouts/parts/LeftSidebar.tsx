@@ -1,111 +1,72 @@
-import type { HomeConfig } from "@/libs/types/blog";
-import { DEFAULT_PROFILE_ROLE } from "@/libs/site-config";
-
-const DEFAULT_ICON = "●";
-
-const resolveContactHref = (type: string, value: string) => {
-  if (!value) return undefined;
-  const normalized = type.toLowerCase();
-  if (normalized === "email") return `mailto:${value}`;
-  if (normalized === "github") return `https://github.com/${value}`;
-  if (normalized === "linkedin")
-    return value.startsWith("http")
-      ? value
-      : `https://linkedin.com/in/${value}`;
-  return value.startsWith("http") ? value : `https://${value}`;
-};
+import Link from "next/link";
+import type { Category, TocItem } from "@/libs/types/blog";
 
 type Props = {
-  home: HomeConfig;
+  tocItems?: TocItem[];
+  categories?: Category[];
+  categoryFilterPath?: string;
+  activeCategorySlug?: string;
 };
 
-export const LeftSidebar = ({ home }: Props) => {
-  const visibleProjects = home.projects.filter((project) => project.name.trim().length > 0);
-  const visibleContacts = home.contacts.filter((contact) => contact.label.trim().length > 0);
+export const LeftSidebar = ({
+  tocItems = [],
+  categories = [],
+  categoryFilterPath,
+  activeCategorySlug,
+}: Props) => {
+  const isCategoryFilterMode = Boolean(categoryFilterPath);
+  const allHref = categoryFilterPath ?? "/";
 
   return (
-    <div className="sidebar-profile">
-      <div className="profile">
-        {home.profileImageUrl ? (
-          <img
-            src={home.profileImageUrl}
-            alt={home.profileName ?? "profile"}
-            className="profile__image"
-          />
-        ) : (
-          <div className="profile__image profile__placeholder" />
-        )}
-        <div className="profile__name">{home.profileName ?? home.blogName}</div>
-        <div className="profile__role">
-          {home.aboutMe || DEFAULT_PROFILE_ROLE}
-        </div>
-      </div>
-
-      {visibleProjects.length > 0 ? (
-        <section className="profile-section">
-          <h3>Projects</h3>
-          <ul>
-            {visibleProjects.map((project) => (
-              <li key={project.id}>
-                {project.link ? (
-                  <a href={project.link} target="_blank" rel="noopener noreferrer">
-                    <span className="project-icon">
-                      {project.iconUrl ? (
-                        <img src={project.iconUrl} alt="" />
-                      ) : (
-                        DEFAULT_ICON
-                      )}
-                    </span>
-                    {project.name}
-                  </a>
-                ) : (
-                  <span className="profile-section__item">
-                    <span className="project-icon">
-                      {project.iconUrl ? (
-                        <img src={project.iconUrl} alt="" />
-                      ) : (
-                        DEFAULT_ICON
-                      )}
-                    </span>
-                    {project.name}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+    <div className="sidebar-left__inner">
+      {tocItems.length > 0 ? (
+        <section className="toc">
+          <h3>Table of Contents</h3>
+          <div className="toc__list">
+            <div className="toc__line" />
+            <ul>
+              {tocItems.map((item) => (
+                <li key={item.id} className={`toc__item level-${item.level}`}>
+                  <a href={`#${item.id}`}>{item.text}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       ) : null}
 
-      {visibleContacts.length > 0 ? (
-        <section className="profile-section">
-          <h3>Contact</h3>
-          <ul className="contact-list">
-            {visibleContacts.map((contact) => {
-              const contactHref = resolveContactHref(contact.type, contact.value);
-              return (
-                <li key={contact.id}>
-                  {contactHref ? (
-                    <a href={contactHref}>
-                      {contact.iconUrl ? (
-                        <img src={contact.iconUrl} alt="" />
-                      ) : (
-                        <span className="contact-icon">{DEFAULT_ICON}</span>
-                      )}
-                      <span>{contact.label}</span>
-                    </a>
-                  ) : (
-                    <span className="profile-section__item">
-                      {contact.iconUrl ? (
-                        <img src={contact.iconUrl} alt="" />
-                      ) : (
-                        <span className="contact-icon">{DEFAULT_ICON}</span>
-                      )}
-                      <span>{contact.label}</span>
-                    </span>
-                  )}
-                </li>
-              );
-            })}
+      {categories.length > 0 ? (
+        <section className="category-menu">
+          <h3>Categories</h3>
+          <ul>
+            {isCategoryFilterMode ? (
+              <li>
+                <Link
+                  href={allHref}
+                  className={!activeCategorySlug ? "is-active" : undefined}
+                  title="전체"
+                >
+                  전체
+                </Link>
+              </li>
+            ) : null}
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link
+                  href={
+                    isCategoryFilterMode
+                      ? `${categoryFilterPath}?category=${encodeURIComponent(category.slug)}`
+                      : `/category/${category.slug}`
+                  }
+                  className={
+                    activeCategorySlug === category.slug ? "is-active" : undefined
+                  }
+                  title={category.name}
+                >
+                  {category.name}
+                </Link>
+              </li>
+            ))}
           </ul>
         </section>
       ) : null}

@@ -27,8 +27,7 @@ export type Project = {
 
 export type Contact = {
   id: string;
-  type: string;
-  label: string;
+  name: string;
   value: string;
   iconUrl?: string;
   order?: number;

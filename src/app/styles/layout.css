@@ -13,7 +13,7 @@
   position: relative;
 }
 
-.sidebar-right__inner {
+.sidebar-left__inner {
   position: sticky;
   top: 120px;
   display: flex;

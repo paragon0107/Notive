@@ -41,7 +41,7 @@ export const HomePageRoute = ({ requestedCategorySlug }: Props) => {
   return (
     <MainLayout
       home={home}
-      rightCategories={home.categories}
+      leftCategories={home.categories}
       categoryFilterPath="/"
       activeCategorySlug={activeCategorySlug}
     >

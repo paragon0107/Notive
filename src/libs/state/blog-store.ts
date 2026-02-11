@@ -10,10 +10,13 @@ import {
 
 type BlogStoreState = {
   databaseMap?: NotionDatabaseMap;
+  databaseMapFetchedAt: number;
   home?: HomeConfig;
+  bootstrapFetchedAt: number;
   posts: Post[];
   postBySlug: Record<string, Post>;
   postBlocksById: Record<string, BlockNode[]>;
+  postFetchedAtBySlug: Record<string, number>;
   isBootstrapLoading: boolean;
   isPostLoading: boolean;
   errorMessage?: string;
@@ -24,6 +27,11 @@ type BlogStoreState = {
 
 let bootstrapPromise: Promise<void> | null = null;
 const postRequestPromises = new Map<string, Promise<void>>();
+const CLIENT_BOOTSTRAP_CACHE_TTL_MS = 30 * 1000;
+const CLIENT_POST_DETAIL_CACHE_TTL_MS = 30 * 1000;
+
+const isWithinTtl = (fetchedAt: number | undefined, ttlMs: number) =>
+  Boolean(fetchedAt && Date.now() - fetchedAt < ttlMs);
 
 const mergePosts = (existing: Post[], incoming: Post[]): Post[] => {
   const byId = new Map(existing.map((post) => [post.id, post]));
@@ -45,22 +53,27 @@ const buildPostBySlugMap = (posts: Post[]) =>
   }, {});
 
 export const useBlogStore = create<BlogStoreState>((set, get) => ({
+  databaseMapFetchedAt: 0,
+  bootstrapFetchedAt: 0,
   posts: [],
   postBySlug: {},
   postBlocksById: {},
+  postFetchedAtBySlug: {},
   isBootstrapLoading: false,
   isPostLoading: false,
   ensureDatabaseMap: async () => {
-    const existing = get().databaseMap;
-    if (existing) return existing;
+    const { databaseMap, databaseMapFetchedAt } = get();
+    if (databaseMap && isWithinTtl(databaseMapFetchedAt, CLIENT_BOOTSTRAP_CACHE_TTL_MS)) {
+      return databaseMap;
+    }
 
-    const databaseMap = await fetchBlogDatabaseMap();
-    set({ databaseMap });
-    return databaseMap;
+    const fetchedDatabaseMap = await fetchBlogDatabaseMap();
+    set({ databaseMap: fetchedDatabaseMap, databaseMapFetchedAt: Date.now() });
+    return fetchedDatabaseMap;
   },
   ensureBootstrap: async () => {
-    const { home, posts } = get();
-    if (home && posts.length > 0) return;
+    const { home, bootstrapFetchedAt } = get();
+    if (home && isWithinTtl(bootstrapFetchedAt, CLIENT_BOOTSTRAP_CACHE_TTL_MS)) return;
 
     if (!bootstrapPromise) {
       bootstrapPromise = (async () => {
@@ -69,10 +82,13 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
         try {
           const payload = await fetchBlogBootstrap();
           const nextPosts = mergePosts(get().posts, payload.posts);
+          const fetchedAt = Date.now();
 
           set({
             databaseMap: payload.databaseMap,
+            databaseMapFetchedAt: fetchedAt,
             home: payload.home,
+            bootstrapFetchedAt: fetchedAt,
             posts: nextPosts,
             postBySlug: buildPostBySlugMap(nextPosts),
             isBootstrapLoading: false,
@@ -96,8 +112,20 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
     const normalizedSlug = slug.trim();
     if (!normalizedSlug) return;
 
-    const existingPost = get().postBySlug[normalizedSlug];
-    if (existingPost && get().postBlocksById[existingPost.id]) {
+    const {
+      postBySlug,
+      postBlocksById,
+      postFetchedAtBySlug,
+    } = get();
+    const existingPost = postBySlug[normalizedSlug];
+    const existingFetchedAt =
+      postFetchedAtBySlug[normalizedSlug] ??
+      (existingPost ? postFetchedAtBySlug[existingPost.slug] : undefined);
+    if (
+      existingPost &&
+      postBlocksById[existingPost.id] &&
+      isWithinTtl(existingFetchedAt, CLIENT_POST_DETAIL_CACHE_TTL_MS)
+    ) {
       return;
     }
 
@@ -109,23 +137,28 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
       set({ isPostLoading: true, errorMessage: undefined });
 
       try {
-        if (!get().databaseMap) {
-          await get().ensureDatabaseMap();
-        }
+        await get().ensureDatabaseMap();
 
         const payload = await fetchBlogPostDetail(normalizedSlug);
         const nextPosts = mergePosts(get().posts, payload.posts);
         const nextPostBySlug = buildPostBySlugMap(nextPosts);
+        const fetchedAt = Date.now();
         // Keep compatibility for non-canonical incoming slugs.
         nextPostBySlug[normalizedSlug] = payload.post;
 
         set({
           databaseMap: payload.databaseMap,
+          databaseMapFetchedAt: fetchedAt,
           posts: nextPosts,
           postBySlug: nextPostBySlug,
           postBlocksById: {
             ...get().postBlocksById,
             [payload.post.id]: payload.blocks,
+          },
+          postFetchedAtBySlug: {
+            ...get().postFetchedAtBySlug,
+            [payload.post.slug]: fetchedAt,
+            [normalizedSlug]: fetchedAt,
           },
           isPostLoading: false,
         });

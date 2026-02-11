@@ -46,7 +46,7 @@ export const CategoryDetailPageRoute = ({ slug }: Props) => {
   }
 
   return (
-    <MainLayout home={home} rightCategories={home.categories}>
+    <MainLayout home={home} leftCategories={home.categories}>
       <section className="category-detail">
         <div className="category-detail__header">
           <h1>{category.name}</h1>

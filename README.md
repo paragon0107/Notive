@@ -75,8 +75,6 @@ Database names are referenced directly in code, so they must match exactly.
 | Property | Type |
 | --- | --- |
 | `Name` | `title` |
-| `Type` | `select` |
-| `Label` | `rich_text` |
 | `Value` | `rich_text` |
 | `Icon` | `files` |
 | `Order` | `number` |
@@ -249,8 +247,6 @@ DB 이름은 코드에서 그대로 참조하므로 정확히 일치해야 합�
 | Property | Type |
 | --- | --- |
 | `Name` | `title` |
-| `Type` | `select` |
-| `Label` | `rich_text` |
 | `Value` | `rich_text` |
 | `Icon` | `files` |
 | `Order` | `number` |

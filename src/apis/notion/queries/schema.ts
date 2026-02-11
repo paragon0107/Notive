@@ -5,18 +5,32 @@ type PropertyType = DatabaseObjectResponse["properties"][string]["type"];
 
 export type PropertySchema = Record<string, PropertyType | Array<PropertyType>>;
 
-const databaseCache = new Map<string, Promise<DatabaseObjectResponse>>();
+type DatabaseCacheEntry = {
+  value: Promise<DatabaseObjectResponse>;
+  expiresAt: number;
+};
+
+const DATABASE_CACHE_TTL_MS = 30 * 1000;
+const databaseCache = new Map<string, DatabaseCacheEntry>();
 
 export const fetchDatabase = async (databaseId: string) => {
   const cached = databaseCache.get(databaseId);
-  if (cached) return cached;
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+  if (cached) {
+    databaseCache.delete(databaseId);
+  }
 
   const notion = getNotionClient();
   const promise = notion.databases.retrieve({
     database_id: databaseId,
   }) as Promise<DatabaseObjectResponse>;
 
-  databaseCache.set(databaseId, promise);
+  databaseCache.set(databaseId, {
+    value: promise,
+    expiresAt: Date.now() + DATABASE_CACHE_TTL_MS,
+  });
   return promise;
 };
 
@@ -82,8 +96,6 @@ export const PROJECTS_SCHEMA: PropertySchema = {
 
 export const CONTACTS_SCHEMA: PropertySchema = {
   Name: "title",
-  Type: "select",
-  Label: "rich_text",
   Value: "rich_text",
   Icon: "files",
   Order: "number",

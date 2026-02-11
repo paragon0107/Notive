@@ -19,9 +19,12 @@ const getSeriesDatabaseId = async () => {
 };
 
 let seriesByPageIdPromise: Promise<Map<string, Series>> | null = null;
+let seriesByPageIdExpiresAt = 0;
+const SERIES_CACHE_TTL_MS = 30 * 1000;
 
 const getSeriesByPageId = async () => {
-  if (!seriesByPageIdPromise) {
+  const now = Date.now();
+  if (!seriesByPageIdPromise || now >= seriesByPageIdExpiresAt) {
     seriesByPageIdPromise = (async () => {
       const seriesDatabaseId = await getSeriesDatabaseId();
       if (!seriesDatabaseId) return new Map<string, Series>();
@@ -38,6 +41,7 @@ const getSeriesByPageId = async () => {
 
       return new Map(seriesItems.map((series) => [series.id, series]));
     })();
+    seriesByPageIdExpiresAt = now + SERIES_CACHE_TTL_MS;
   }
 
   return seriesByPageIdPromise;
