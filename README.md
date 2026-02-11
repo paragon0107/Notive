@@ -45,6 +45,17 @@ Manage posts, categories, profile, and project/contact information in Notion and
 
 Database names are referenced directly in code, so they must match exactly.
 
+#### Template (Recommended)
+
+Start from this Notion template and duplicate it into your own workspace:
+
+- https://www.notion.so/BlogCMS-304d2b0fa12f80adb850d119cd1d45a9?source=copy_link
+
+After duplicating, use the copied root page as your CMS source and set that page ID as `NOTION_PAGE_ID`.
+
+In the example URL above, `NOTION_PAGE_ID` is the last 32-character string before `?source=...`:
+`304d2b0fa12f80adb850d119cd1d45a9`
+
 ### Required Schema
 
 #### `Posts`
@@ -126,6 +137,9 @@ NOTION_PAGE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
    - Make sure child databases (`Posts`, `Projects`, `Contacts`, `Home`) are accessible by that integration.
 4. Copy the root page ID.
    - Open the root page in the browser and copy the page ID from the URL.
+   - Example:
+     `https://www.notion.so/BlogCMS-304d2b0fa12f80adb850d119cd1d45a9?source=copy_link`
+     -> `NOTION_PAGE_ID=304d2b0fa12f80adb850d119cd1d45a9`
    - Set it as `NOTION_PAGE_ID` in `.env.local`.
 
 #### 3) Run
@@ -217,6 +231,17 @@ Notion 페이지를 CMS로 사용하는 Next.js 블로그 서비스입니다.
 
 DB 이름은 코드에서 그대로 참조하므로 정확히 일치해야 합니다.
 
+#### 템플릿 복제 (권장)
+
+아래 Notion 템플릿을 본인 워크스페이스로 복제해서 시작하세요.
+
+- https://www.notion.so/BlogCMS-304d2b0fa12f80adb850d119cd1d45a9?source=copy_link
+
+복제한 루트 페이지를 CMS 원본으로 사용하고, 해당 페이지 ID를 `NOTION_PAGE_ID`로 설정하면 됩니다.
+
+위 예시 링크에서 `NOTION_PAGE_ID`는 `?source=...` 앞의 마지막 32자리 문자열입니다:
+`304d2b0fa12f80adb850d119cd1d45a9`
+
 ### 필수 스키마
 
 #### `Posts`
@@ -298,6 +323,9 @@ NOTION_PAGE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
    - 하위 DB(`Posts`, `Projects`, `Contacts`, `Home`)도 해당 Integration이 접근 가능해야 합니다.
 4. 루트 페이지 ID를 복사합니다.
    - 브라우저에서 루트 페이지 URL을 열고 page ID를 복사합니다.
+   - 예시:
+     `https://www.notion.so/BlogCMS-304d2b0fa12f80adb850d119cd1d45a9?source=copy_link`
+     -> `NOTION_PAGE_ID=304d2b0fa12f80adb850d119cd1d45a9`
    - `.env.local`의 `NOTION_PAGE_ID`에 넣습니다.
 
 #### 3) 실행
