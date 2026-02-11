@@ -42,6 +42,19 @@ const buildPostSlug = (title: string, pageId: string) => {
   return `${titleSlug}-${slugKey}`;
 };
 
+export const findPostBySlugFromList = (posts: Post[], slug: string): Post | undefined => {
+  const normalizedSlug = normalizeSlugValue(slug);
+  if (!normalizedSlug) return undefined;
+
+  const slugKey = tryExtractSlugKey(normalizedSlug);
+  if (slugKey) {
+    const postBySlugKey = posts.find((post) => buildPostSlugKey(post.id) === slugKey);
+    if (postBySlugKey) return postBySlugKey;
+  }
+
+  return posts.find((post) => post.slug === normalizedSlug);
+};
+
 const mapPost = async (page: PageObjectResponse): Promise<Post> => {
   const title = getTitleProperty(page);
   const series = await findSeriesByRelationIds(getRelationPropertyIds(page, "Series"));
@@ -91,15 +104,29 @@ export const fetchPosts = async (): Promise<Post[]> => {
 
 export const fetchPostBySlug = async (slug: string): Promise<Post | undefined> => {
   const normalizedSlug = normalizeSlugValue(slug);
-  const posts = await fetchPosts();
-  const slugKey = tryExtractSlugKey(normalizedSlug);
+  if (!normalizedSlug) return undefined;
 
-  if (slugKey) {
-    const postBySlugKey = posts.find((post) => buildPostSlugKey(post.id) === slugKey);
-    if (postBySlugKey) return postBySlugKey;
-  }
+  const postsDatabaseId = await getPostsDatabaseId();
+  const pages = await queryAllDatabasePages(postsDatabaseId, {
+    page_size: 1,
+    filter: {
+      and: [
+        {
+          property: "Published",
+          checkbox: { equals: true },
+        },
+        {
+          property: "Slug",
+          rich_text: { equals: normalizedSlug },
+        },
+      ],
+    },
+  });
 
-  return posts.find((post) => post.slug === normalizedSlug);
+  const page = pages[0];
+  if (!page) return undefined;
+
+  return mapPost(page);
 };
 
 const hydrateChildren = async (block: BlockObjectResponse): Promise<BlockNode> => {

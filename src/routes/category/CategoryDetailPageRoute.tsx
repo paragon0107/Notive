@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { MainLayout } from "@/layouts/MainLayout";
 import { FeedContainer } from "@/routes/feed/FeedContainer";
 import { useBlogStore } from "@/libs/state/blog-store";
+import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { filterPostsByCategorySlug } from "@/libs/posts";
 import { buildPostSummaries } from "@/libs/post-summary";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -13,15 +14,8 @@ type Props = {
 };
 
 export const CategoryDetailPageRoute = ({ slug }: Props) => {
-  const home = useBlogStore((state) => state.home);
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
   const posts = useBlogStore((state) => state.posts);
-  const isBootstrapLoading = useBlogStore((state) => state.isBootstrapLoading);
-  const errorMessage = useBlogStore((state) => state.errorMessage);
-  const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
-
-  useEffect(() => {
-    void ensureBootstrap();
-  }, [ensureBootstrap]);
 
   const category = useMemo(
     () => home?.categories.find((item) => item.slug === slug),

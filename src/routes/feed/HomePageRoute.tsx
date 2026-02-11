@@ -1,33 +1,29 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { MainLayout } from "@/layouts/MainLayout";
 import { FeedContainer } from "@/routes/feed/FeedContainer";
 import { useBlogStore } from "@/libs/state/blog-store";
+import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { buildPostSummaries } from "@/libs/post-summary";
 import { PageLoader } from "@/components/ui/page-loader";
 
-export const HomePageRoute = () => {
-  const searchParams = useSearchParams();
-  const home = useBlogStore((state) => state.home);
-  const posts = useBlogStore((state) => state.posts);
-  const isBootstrapLoading = useBlogStore((state) => state.isBootstrapLoading);
-  const errorMessage = useBlogStore((state) => state.errorMessage);
-  const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
+type Props = {
+  requestedCategorySlug?: string;
+};
 
-  useEffect(() => {
-    void ensureBootstrap();
-  }, [ensureBootstrap]);
+export const HomePageRoute = ({ requestedCategorySlug }: Props) => {
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
+  const posts = useBlogStore((state) => state.posts);
 
   const summaries = useMemo(() => buildPostSummaries(posts), [posts]);
 
-  const requestedCategorySlug = searchParams.get("category")?.trim();
+  const normalizedRequestedCategorySlug = requestedCategorySlug?.trim();
   const hasCategoryFilter = Boolean(
-    requestedCategorySlug &&
-      home?.categories.some((category) => category.slug === requestedCategorySlug)
+    normalizedRequestedCategorySlug &&
+      home?.categories.some((category) => category.slug === normalizedRequestedCategorySlug)
   );
-  const activeCategorySlug = hasCategoryFilter ? requestedCategorySlug : undefined;
+  const activeCategorySlug = hasCategoryFilter ? normalizedRequestedCategorySlug : undefined;
   const filteredPosts = activeCategorySlug
     ? summaries.filter((post) =>
         post.categories.some((category) => category.slug === activeCategorySlug)

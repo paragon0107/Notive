@@ -8,6 +8,16 @@ export const metadata: Metadata = buildMetadata({
   path: "/",
 });
 
-export default function HomePage() {
-  return <HomePageRoute />;
+type Props = {
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
+const readCategorySlug = (searchParams?: Record<string, string | string[] | undefined>) => {
+  const categoryParam = searchParams?.category;
+  if (typeof categoryParam === "string") return categoryParam;
+  return undefined;
+};
+
+export default function HomePage({ searchParams }: Props) {
+  return <HomePageRoute requestedCategorySlug={readCategorySlug(searchParams)} />;
 }

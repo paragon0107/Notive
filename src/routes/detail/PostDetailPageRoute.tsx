@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { MainLayout } from "@/layouts/MainLayout";
 import { PostDetailView } from "@/routes/detail/PostDetailView";
 import { useBlogStore } from "@/libs/state/blog-store";
+import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { getRelatedPosts, getSeriesPosts } from "@/libs/posts";
 import { getFallbackHomeConfig } from "@/libs/home-config";
 import { PageLoader } from "@/components/ui/page-loader";
@@ -14,20 +15,16 @@ type Props = {
 };
 
 export const PostDetailPageRoute = ({ slug }: Props) => {
-  const home = useBlogStore((state) => state.home);
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
   const posts = useBlogStore((state) => state.posts);
   const postBySlug = useBlogStore((state) => state.postBySlug);
   const postBlocksById = useBlogStore((state) => state.postBlocksById);
-  const isBootstrapLoading = useBlogStore((state) => state.isBootstrapLoading);
   const isPostLoading = useBlogStore((state) => state.isPostLoading);
-  const errorMessage = useBlogStore((state) => state.errorMessage);
-  const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
   const ensurePostDetail = useBlogStore((state) => state.ensurePostDetail);
 
   useEffect(() => {
-    void ensureBootstrap();
     void ensurePostDetail(slug);
-  }, [ensureBootstrap, ensurePostDetail, slug]);
+  }, [ensurePostDetail, slug]);
 
   const post = postBySlug[slug];
   const blocks = post ? postBlocksById[post.id] ?? [] : [];

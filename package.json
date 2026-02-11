@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "sync:revalidate": "node scripts/sync-revalidate.mjs",
-    "prebuild": "npm run sync:revalidate",
-    "notion:setup": "node scripts/setup-notion.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"

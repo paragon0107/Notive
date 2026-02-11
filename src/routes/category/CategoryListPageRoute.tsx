@@ -1,20 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { MainLayout } from "@/layouts/MainLayout";
-import { useBlogStore } from "@/libs/state/blog-store";
+import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { PageLoader } from "@/components/ui/page-loader";
 
 export const CategoryListPageRoute = () => {
-  const home = useBlogStore((state) => state.home);
-  const isBootstrapLoading = useBlogStore((state) => state.isBootstrapLoading);
-  const errorMessage = useBlogStore((state) => state.errorMessage);
-  const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
-
-  useEffect(() => {
-    void ensureBootstrap();
-  }, [ensureBootstrap]);
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
 
   if (!home && isBootstrapLoading) {
     return <PageLoader />;
