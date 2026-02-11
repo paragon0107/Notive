@@ -198,11 +198,6 @@
     min-height: 180px;
   }
 
-  .post-detail__spinner {
-    width: 32px;
-    height: 32px;
-  }
-
   .embed iframe {
     min-height: 240px;
   }

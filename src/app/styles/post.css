@@ -62,21 +62,6 @@
   place-items: center;
 }
 
-.post-detail__spinner {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  animation: post-detail-spin 0.9s linear infinite;
-}
-
-@keyframes post-detail-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .callout {
   display: flex;
   gap: 12px;

@@ -5,6 +5,7 @@ import { renderBlocks } from "@/libs/notion/renderer";
 import type { BlockNode } from "@/libs/notion/blocks";
 import { extractPlainText } from "@/libs/notion/blocks";
 import { notionColorClass } from "@/libs/notion/colors";
+import { Component as LoaderSpinner } from "@/components/ui/luma-spin";
 
 type Props = {
   post: Post;
@@ -58,7 +59,7 @@ export const PostDetailView = ({
       <section className="post-detail__content">
         {isContentLoading ? (
           <div className="post-detail__content-loading" aria-busy="true">
-            <span className="post-detail__spinner" />
+            <LoaderSpinner />
           </div>
         ) : (
           renderBlocks(blocks)
