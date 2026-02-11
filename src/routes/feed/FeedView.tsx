@@ -1,16 +1,13 @@
 import Link from "next/link";
 import type { HomeConfig, PostSummary } from "@/libs/types/blog";
-import { formatDate, estimateReadingMinutes } from "@/libs/format";
-
-const getReadingTimeLabel = (text: string) => {
-  const minutes = estimateReadingMinutes(text);
-  return `${minutes} min read`;
-};
+import { formatDate } from "@/libs/format";
+import { notionColorClass } from "@/libs/notion/colors";
 
 type Props = {
   posts: PostSummary[];
   searchText: string;
   onSearchChange: (value: string) => void;
+  onPostClick: (slug: string) => void;
   emptyMessage: string;
   home: HomeConfig;
 };
@@ -19,6 +16,7 @@ export const FeedView = ({
   posts,
   searchText,
   onSearchChange,
+  onPostClick,
   emptyMessage,
   home,
 }: Props) => {
@@ -39,25 +37,54 @@ export const FeedView = ({
       ) : (
         <div className="feed__list">
           {posts.map((post) => (
-            <article className="feed__item" key={post.id}>
+            <article
+              className="feed__item"
+              key={post.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => onPostClick(post.slug)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onPostClick(post.slug);
+                }
+              }}
+            >
               <div className="feed__text">
                 <h2>
-                  <Link href={`/post/${post.slug}`}>{post.title}</Link>
+                  <Link
+                    href={`/post/${post.slug}`}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {post.title}
+                  </Link>
                 </h2>
                 {post.summary ? <p>{post.summary}</p> : null}
-                <div className="meta">
-                  <span>{formatDate(post.date)}</span>
-                  <span>·</span>
-                  <span>{getReadingTimeLabel(post.searchText)}</span>
+                <div className="feed__meta-group">
+                  {post.categories.length > 0 ? (
+                    <div className="feed__categories">
+                      {post.categories.map((category) => (
+                        <Link
+                          key={category.id}
+                          href={`/category/${category.slug}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className={`category-pill ${notionColorClass(category.color)}`}
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="meta">
+                    <span>{formatDate(post.date)}</span>
+                  </div>
                 </div>
               </div>
-              <div className="feed__thumb">
-                {post.thumbnailUrl ? (
+              {post.thumbnailUrl ? (
+                <div className="feed__thumb">
                   <img src={post.thumbnailUrl} alt="" />
-                ) : (
-                  <div className="feed__thumb-placeholder" />
-                )}
-              </div>
+                </div>
+              ) : null}
             </article>
           ))}
         </div>

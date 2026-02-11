@@ -1,29 +1,22 @@
 import type { Post, PostSummary } from "@/libs/types/blog";
 import { buildSearchText } from "@/libs/notion/search";
-import { extractPlainText } from "@/libs/notion/blocks";
-import type { BlockNode } from "@/libs/notion/blocks";
 
 export const buildPostSummary = (
   post: Post,
-  blocks: BlockNode[]
+  contentText = ""
 ): PostSummary => {
-  const contentText = extractPlainText(blocks);
   const categoryNames = post.categories.map((category) => category.name);
+  const seriesNames = post.series?.map((series) => series.name) ?? [];
   return {
     ...post,
     searchText: buildSearchText(
       post,
       contentText,
       categoryNames,
-      post.series?.name
+      seriesNames
     ),
   };
 };
 
-export const buildPostSummaries = (
-  posts: Post[],
-  blocksByPostId: Map<string, BlockNode[]>
-): PostSummary[] =>
-  posts.map((post) =>
-    buildPostSummary(post, blocksByPostId.get(post.id) ?? [])
-  );
+export const buildPostSummaries = (posts: Post[]): PostSummary[] =>
+  posts.map((post) => buildPostSummary(post, post.summary ?? ""));

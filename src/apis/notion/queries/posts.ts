@@ -5,55 +5,48 @@ import type {
 } from "@notionhq/client/build/src/api-endpoints";
 import type { BlockNode } from "@/libs/notion/blocks";
 import type { Post } from "@/libs/types/blog";
-import { getNotionClient } from "@/apis/notion/client";
-import { getDatabaseMap } from "@/apis/notion/queries/database-map";
-import {
-  assertDatabaseSchema,
-  fetchDatabase,
-  POSTS_SCHEMA,
-} from "@/apis/notion/queries/schema";
+import { getPostsDatabaseId } from "@/apis/notion/queries/databases";
+import { listBlockChildren, queryAllDatabasePages } from "@/apis/notion/queries/shared/query";
+import { mapCategoryOption } from "@/apis/notion/queries/shared/mappers";
+import { findSeriesByRelationIds } from "@/apis/notion/queries/series";
 import {
   getDateProperty,
   getFilesProperty,
   getMultiSelectOptions,
   getPeoplePropertyNames,
+  getRelationPropertyIds,
   getRichTextProperty,
-  getSelectOption,
-  getSlugProperty,
   getTitleProperty,
 } from "@/libs/notion/properties";
 import { slugify } from "@/libs/notion/slugify";
 
-const isFullPage = (page: unknown): page is PageObjectResponse =>
-  Boolean(page && typeof page === "object" && "properties" in page);
+const normalizeSlugValue = (value: string) => slugify(value.trim());
 
-const mapCategories = (page: PageObjectResponse) =>
-  getMultiSelectOptions(page, "Category").map((option) => ({
-    id: `category-${slugify(option.name)}`,
-    name: option.name,
-    slug: slugify(option.name),
-    description: undefined,
-    order: undefined,
-    isPinned: false,
-    color: option.color,
-  }));
+const buildPostSlugKey = (pageId: string) =>
+  pageId.replace(/-/g, "").toLowerCase().slice(-6);
 
-const mapSeries = (page: PageObjectResponse) => {
-  const option = getSelectOption(page, "Series");
-  if (!option) return undefined;
-  return {
-    id: `series-${slugify(option.name)}`,
-    name: option.name,
-    slug: slugify(option.name),
-    description: undefined,
-    order: undefined,
-    postIds: [],
-  };
+const tryExtractSlugKey = (slug: string) => {
+  const normalizedSlug = normalizeSlugValue(slug);
+  const segments = normalizedSlug.split("-").filter(Boolean);
+  if (segments.length === 0) return undefined;
+
+  const suffix = segments[segments.length - 1];
+  return /^[a-z0-9]{6}$/.test(suffix) ? suffix : undefined;
 };
 
-const mapPost = (page: PageObjectResponse): Post => {
+const buildPostSlug = (title: string, pageId: string) => {
+  const titleSlug = normalizeSlugValue(title);
+  const slugKey = buildPostSlugKey(pageId);
+
+  if (!titleSlug) return `post-${slugKey}`;
+  return `${titleSlug}-${slugKey}`;
+};
+
+const mapPost = async (page: PageObjectResponse): Promise<Post> => {
   const title = getTitleProperty(page);
-  const slug = getSlugProperty(page) ?? slugify(title);
+  const series = await findSeriesByRelationIds(getRelationPropertyIds(page, "Series"));
+  const rawSlug = getRichTextProperty(page, "Slug");
+  const slug = rawSlug ? normalizeSlugValue(rawSlug) : buildPostSlug(title, page.id);
 
   return {
     id: page.id,
@@ -62,100 +55,51 @@ const mapPost = (page: PageObjectResponse): Post => {
     date: getDateProperty(page, "Date"),
     summary: getRichTextProperty(page, "Summary"),
     thumbnailUrl: getFilesProperty(page, "Thumbnail"),
-    categories: mapCategories(page),
-    series: mapSeries(page),
+    categories: getMultiSelectOptions(page, "Category").map((option, index) =>
+      mapCategoryOption(
+        {
+          id: option.id,
+          name: option.name,
+          color: option.color,
+        },
+        index,
+        false
+      )
+    ),
+    series: series.length > 0 ? series : undefined,
     authorNames: getPeoplePropertyNames(page, "Author"),
   };
 };
 
-const queryAllPages = async (
-  databaseId: string,
-  filter?: QueryDatabaseParameters["filter"]
-) => {
-  const notion = getNotionClient();
-  const results: PageObjectResponse[] = [];
-  let cursor: string | undefined;
-
-  do {
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ property: "Date", direction: "descending" }],
-    });
-
-    response.results.forEach((page) => {
-      if (isFullPage(page)) results.push(page);
-    });
-
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
-  } while (cursor);
-
-  return results;
-};
-
-let postsDatabasePromise: Promise<string> | null = null;
-
-const ensurePostsDatabase = async () => {
-  if (!postsDatabasePromise) {
-    postsDatabasePromise = (async () => {
-      const { postsId } = await getDatabaseMap();
-      const database = await fetchDatabase(postsId);
-      assertDatabaseSchema(database, POSTS_SCHEMA);
-      return postsId;
-    })();
-  }
-
-  return postsDatabasePromise;
+const queryPosts = async (filter?: QueryDatabaseParameters["filter"]) => {
+  const postsDatabaseId = await getPostsDatabaseId();
+  return queryAllDatabasePages(postsDatabaseId, {
+    filter,
+    page_size: 100,
+    sorts: [{ property: "Date", direction: "descending" }],
+  });
 };
 
 export const fetchPosts = async (): Promise<Post[]> => {
-  const postsId = await ensurePostsDatabase();
-  const pages = await queryAllPages(postsId, {
+  const pages = await queryPosts({
     property: "Published",
     checkbox: { equals: true },
   });
 
-  return pages.map(mapPost);
+  return Promise.all(pages.map(mapPost));
 };
 
 export const fetchPostBySlug = async (slug: string): Promise<Post | undefined> => {
-  const postsId = await ensurePostsDatabase();
-  const notion = getNotionClient();
-  const response = await notion.databases.query({
-    database_id: postsId,
-    filter: {
-      property: "Slug",
-      rich_text: { equals: slug },
-    },
-    page_size: 1,
-  });
+  const normalizedSlug = normalizeSlugValue(slug);
+  const posts = await fetchPosts();
+  const slugKey = tryExtractSlugKey(normalizedSlug);
 
-  const page = response.results.find(isFullPage);
-  return page ? mapPost(page) : undefined;
-};
+  if (slugKey) {
+    const postBySlugKey = posts.find((post) => buildPostSlugKey(post.id) === slugKey);
+    if (postBySlugKey) return postBySlugKey;
+  }
 
-const listBlockChildren = async (blockId: string) => {
-  const notion = getNotionClient();
-  const blocks: BlockObjectResponse[] = [];
-  let cursor: string | undefined;
-
-  do {
-    const response = await notion.blocks.children.list({
-      block_id: blockId,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-
-    response.results.forEach((block) => {
-      if ("type" in block) blocks.push(block as BlockObjectResponse);
-    });
-
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
-  } while (cursor);
-
-  return blocks;
+  return posts.find((post) => post.slug === normalizedSlug);
 };
 
 const hydrateChildren = async (block: BlockObjectResponse): Promise<BlockNode> => {

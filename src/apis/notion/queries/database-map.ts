@@ -1,5 +1,6 @@
 import type { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { getNotionClient, getNotionPageId } from "@/apis/notion/client";
+import { getNotionPageId } from "@/apis/notion/client";
+import { listBlockChildren } from "@/apis/notion/queries/shared/query";
 
 type DatabaseMap = {
   postsId: string;
@@ -8,40 +9,57 @@ type DatabaseMap = {
   homeId: string;
 };
 
-const REQUIRED_TITLES = ["Posts", "Projects", "Contacts", "Home"] as const;
+const REQUIRED_DATABASE_TITLES = ["Posts", "Projects", "Contacts", "Home"] as const;
 
-type RequiredTitle = (typeof REQUIRED_TITLES)[number];
+type RequiredDatabaseTitle = (typeof REQUIRED_DATABASE_TITLES)[number];
 
 const normalizeTitle = (value: string) => value.trim().toLowerCase();
 
-const isChildDatabase = (
+const isChildDatabaseBlock = (
   block: BlockObjectResponse
 ): block is BlockObjectResponse & { type: "child_database" } =>
   block.type === "child_database";
 
 const listChildDatabases = async () => {
-  const notion = getNotionClient();
   const pageId = getNotionPageId();
-  const results: BlockObjectResponse[] = [];
-  let cursor: string | undefined;
+  const blocks = await listBlockChildren(pageId);
+  return blocks.filter(isChildDatabaseBlock);
+};
 
-  do {
-    const response = await notion.blocks.children.list({
-      block_id: pageId,
-      page_size: 100,
-      start_cursor: cursor,
-    });
+const buildDatabaseMap = (blocks: Array<BlockObjectResponse & { type: "child_database" }>) => {
+  const databaseIdByTitle = new Map<string, string>();
 
-    response.results.forEach((block) => {
-      if ("type" in block) {
-        results.push(block as BlockObjectResponse);
-      }
-    });
+  blocks.forEach((block) => {
+    const title = block.child_database.title ?? "";
+    databaseIdByTitle.set(normalizeTitle(title), block.id);
+  });
 
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
-  } while (cursor);
+  const resolved: Record<RequiredDatabaseTitle, string | undefined> = {
+    Posts: databaseIdByTitle.get(normalizeTitle("Posts")),
+    Projects: databaseIdByTitle.get(normalizeTitle("Projects")),
+    Contacts: databaseIdByTitle.get(normalizeTitle("Contacts")),
+    Home: databaseIdByTitle.get(normalizeTitle("Home")),
+  };
 
-  return results.filter(isChildDatabase);
+  const missingTitles = REQUIRED_DATABASE_TITLES.filter((title) => !resolved[title]);
+
+  if (missingTitles.length > 0) {
+    const availableTitles = Array.from(databaseIdByTitle.keys())
+      .map((title) => `"${title}"`)
+      .join(", ");
+
+    throw new Error(
+      `Missing Notion databases: ${missingTitles.join(", ")}. ` +
+        `Available child databases: ${availableTitles || "none"}.`
+    );
+  }
+
+  return {
+    postsId: resolved.Posts ?? "",
+    projectsId: resolved.Projects ?? "",
+    contactsId: resolved.Contacts ?? "",
+    homeId: resolved.Home ?? "",
+  };
 };
 
 let databaseMapPromise: Promise<DatabaseMap> | null = null;
@@ -50,41 +68,7 @@ export const getDatabaseMap = async (): Promise<DatabaseMap> => {
   if (!databaseMapPromise) {
     databaseMapPromise = (async () => {
       const blocks = await listChildDatabases();
-      const byTitle = new Map<string, string>();
-
-      blocks.forEach((block) => {
-        const title = block.child_database.title ?? "";
-        byTitle.set(normalizeTitle(title), block.id);
-      });
-
-      const missing: RequiredTitle[] = [];
-      const resolved: Record<RequiredTitle, string | undefined> = {
-        Posts: byTitle.get(normalizeTitle("Posts")),
-        Projects: byTitle.get(normalizeTitle("Projects")),
-        Contacts: byTitle.get(normalizeTitle("Contacts")),
-        Home: byTitle.get(normalizeTitle("Home")),
-      };
-
-      REQUIRED_TITLES.forEach((title) => {
-        if (!resolved[title]) missing.push(title);
-      });
-
-      if (missing.length > 0) {
-        const available = Array.from(byTitle.keys())
-          .map((key) => `"${key}"`)
-          .join(", ");
-        throw new Error(
-          `Missing Notion databases: ${missing.join(", ")}. ` +
-            `Available child databases: ${available || "none"}.`
-        );
-      }
-
-      return {
-        postsId: resolved.Posts ?? "",
-        projectsId: resolved.Projects ?? "",
-        contactsId: resolved.Contacts ?? "",
-        homeId: resolved.Home ?? "",
-      };
+      return buildDatabaseMap(blocks);
     })();
   }
 

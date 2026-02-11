@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { HomeConfig, PostSummary } from "@/libs/types/blog";
 import { FeedView } from "@/routes/feed/FeedView";
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export const FeedContainer = ({ posts, home }: Props) => {
+  const router = useRouter();
   const [searchText, setSearchText] = useState("");
 
   const filtered = useMemo(() => {
@@ -23,6 +25,7 @@ export const FeedContainer = ({ posts, home }: Props) => {
       posts={filtered}
       searchText={searchText}
       onSearchChange={setSearchText}
+      onPostClick={(slug) => router.push(`/post/${slug}`)}
       emptyMessage={
         searchText
           ? `No results for "${searchText}".`

@@ -1,0 +1,26 @@
+.layout {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr) var(--right-width);
+  gap: var(--layout-gap);
+  background: transparent;
+}
+
+.sidebar-left,
+.sidebar-right {
+  position: relative;
+}
+
+.sidebar-right__inner {
+  position: sticky;
+  top: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.main {
+  min-width: 0;
+}

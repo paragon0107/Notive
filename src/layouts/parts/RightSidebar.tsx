@@ -1,17 +1,22 @@
 import Link from "next/link";
-import type { Category, Post, TocItem } from "@/libs/types/blog";
+import type { Category, TocItem } from "@/libs/types/blog";
 
 type Props = {
   tocItems?: TocItem[];
-  relatedPosts?: Post[];
   categories?: Category[];
+  categoryFilterPath?: string;
+  activeCategorySlug?: string;
 };
 
 export const RightSidebar = ({
   tocItems = [],
-  relatedPosts = [],
   categories = [],
+  categoryFilterPath,
+  activeCategorySlug,
 }: Props) => {
+  const isCategoryFilterMode = Boolean(categoryFilterPath);
+  const allHref = categoryFilterPath ?? "/";
+
   return (
     <div className="sidebar-right__inner">
       {tocItems.length > 0 ? (
@@ -30,26 +35,36 @@ export const RightSidebar = ({
         </section>
       ) : null}
 
-      {relatedPosts.length > 0 ? (
-        <section className="related">
-          <h3>Related Posts</h3>
-          <ul>
-            {relatedPosts.map((post) => (
-              <li key={post.id}>
-                <Link href={`/post/${post.slug}`}>{post.title}</Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       {categories.length > 0 ? (
         <section className="category-menu">
           <h3>Categories</h3>
           <ul>
+            {isCategoryFilterMode ? (
+              <li>
+                <Link
+                  href={allHref}
+                  className={!activeCategorySlug ? "is-active" : undefined}
+                  title="전체"
+                >
+                  전체
+                </Link>
+              </li>
+            ) : null}
             {categories.map((category) => (
               <li key={category.id}>
-                <Link href={`/category/${category.slug}`}>{category.name}</Link>
+                <Link
+                  href={
+                    isCategoryFilterMode
+                      ? `${categoryFilterPath}?category=${encodeURIComponent(category.slug)}`
+                      : `/category/${category.slug}`
+                  }
+                  className={
+                    activeCategorySlug === category.slug ? "is-active" : undefined
+                  }
+                  title={category.name}
+                >
+                  {category.name}
+                </Link>
               </li>
             ))}
           </ul>

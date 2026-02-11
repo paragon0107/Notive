@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { MainLayout } from "@/layouts/MainLayout";
-import { fetchHomePageData } from "@/apis/notion/queries";
 import { buildMetadata } from "@/libs/seo";
-import { FeedContainer } from "@/routes/feed/FeedContainer";
-export const revalidate = 3600;
+import { HomePageRoute } from "@/routes/feed/HomePageRoute";
 
 export const metadata: Metadata = buildMetadata({
   title: "Home",
@@ -11,12 +8,6 @@ export const metadata: Metadata = buildMetadata({
   path: "/",
 });
 
-export default async function HomePage() {
-  const { home, posts } = await fetchHomePageData();
-
-  return (
-    <MainLayout home={home} rightCategories={home.categories}>
-      <FeedContainer posts={posts} home={home} />
-    </MainLayout>
-  );
+export default function HomePage() {
+  return <HomePageRoute />;
 }

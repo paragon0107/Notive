@@ -1,0 +1,228 @@
+.post-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.post-detail__header h1 {
+  font-size: 42px;
+  margin: 8px 0;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.post-detail__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.category-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--pill-bg);
+}
+
+.post-detail__hero img {
+  margin-top: 24px;
+  border-radius: 12px;
+  width: 100%;
+  height: auto;
+  border: none;
+}
+
+.post-detail__content p {
+  line-height: 1.8;
+  margin: 12px 0;
+}
+
+.post-detail__content h2,
+.post-detail__content h3,
+.post-detail__content h4 {
+  margin: 32px 0 10px;
+  padding-top: 0;
+  border-top: none;
+  scroll-margin-top: 110px;
+}
+
+.post-detail__content blockquote {
+  margin: 20px 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--bg-alt) 75%, var(--bg));
+  border-top: none;
+  border-bottom: none;
+}
+
+.post-detail__content-loading {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+}
+
+.post-detail__spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: post-detail-spin 0.9s linear infinite;
+}
+
+@keyframes post-detail-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg-alt) 85%, var(--bg));
+  border: 1px solid var(--border);
+}
+
+.callout-icon {
+  font-size: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+}
+
+.code-block {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 14px 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--code-border);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.code-block__meta {
+  font-size: 11px;
+  color: var(--code-meta);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.code-block__content {
+  display: block;
+  white-space: pre;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+.embed iframe {
+  width: 100%;
+  min-height: 360px;
+  border: none;
+  border-radius: 12px;
+}
+
+.post-detail__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.post-detail__related ul,
+.category-list ul,
+.series-detail ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-list li,
+.series-detail li {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+}
+
+.post-detail__related-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-detail__related-item a {
+  font-weight: 600;
+}
+
+.post-detail__related-summary {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  min-height: 1.6em;
+}
+
+.post-detail__related-date {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.post-detail__series ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.post-detail__series,
+.post-detail__related {
+  min-height: 140px;
+}
+
+.post-detail__series-empty,
+.post-detail__related-empty {
+  height: 100px;
+}
+
+.toc,
+.related,
+.category-menu,
+.post-detail__related,
+.post-detail__series,
+.category-detail__header,
+.series-detail__header {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.category-detail__header,
+.series-detail__header {
+  margin-bottom: 16px;
+}
+
+.post-detail__related {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}

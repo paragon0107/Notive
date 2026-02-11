@@ -4,14 +4,14 @@ export const buildSearchText = (
   post: Post,
   contentText: string,
   categoryNames: string[],
-  seriesName?: string
+  seriesNames: string[] = []
 ) => {
   return [
     post.title,
     post.summary,
     contentText,
     categoryNames.join(" "),
-    seriesName,
+    seriesNames.join(" "),
   ]
     .filter(Boolean)
     .join(" ")

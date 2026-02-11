@@ -11,8 +11,5 @@ export const SITE_URL =
 export const DEFAULT_PROFILE_ROLE =
   process.env.NEXT_PUBLIC_PROFILE_ROLE ?? "Creator";
 
-export const DEFAULT_CONTACTS = [
-  { type: "GitHub", label: "GitHub", value: "" },
-  { type: "Email", label: "Email", value: "" },
-  { type: "LinkedIn", label: "LinkedIn", value: "" },
-];
+export const DEFAULT_PROFILE_IMAGE_URL =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23e9e9e7'/%3E%3Ccircle cx='100' cy='78' r='34' fill='%239b9a97'/%3E%3Cpath d='M40 170c0-34 27-54 60-54s60 20 60 54' fill='%239b9a97'/%3E%3C/svg%3E";

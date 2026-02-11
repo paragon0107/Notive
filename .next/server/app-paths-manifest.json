@@ -1,5 +1,7 @@
 {
-  "/category/page": "app/category/page.js",
   "/post/[slug]/page": "app/post/[slug]/page.js",
-  "/page": "app/page.js"
+  "/api/blog/bootstrap/route": "app/api/blog/bootstrap/route.js",
+  "/api/blog/database-map/route": "app/api/blog/database-map/route.js",
+  "/page": "app/page.js",
+  "/api/blog/post/[slug]/route": "app/api/blog/post/[slug]/route.js"
 }

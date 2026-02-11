@@ -1,16 +1,5 @@
 import type { Post } from "@/libs/types/blog";
 
-export const getPostNavigation = (posts: Post[], currentId: string) => {
-  const index = posts.findIndex((post) => post.id === currentId);
-  if (index === -1) {
-    return { previous: undefined, next: undefined } as const;
-  }
-  return {
-    previous: posts[index + 1],
-    next: posts[index - 1],
-  } as const;
-};
-
 export const getRelatedPosts = (
   posts: Post[],
   categoryIds: string[],
@@ -28,18 +17,18 @@ export const getRelatedPosts = (
 export const filterPostsByCategorySlug = (posts: Post[], slug: string) =>
   posts.filter((post) => post.categories.some((category) => category.slug === slug));
 
-export const filterPostsBySeriesSlug = (posts: Post[], slug: string) =>
-  posts.filter((post) => post.series?.slug === slug);
+export const getSeriesPosts = (
+  posts: Post[],
+  seriesIds: string[],
+  currentId: string,
+  limit?: number
+) => {
+  if (seriesIds.length === 0) return [] as Post[];
 
-export const sortPostsBySeriesOrder = (posts: Post[], postIds: string[]) => {
-  if (postIds.length === 0) return posts;
-  const orderMap = new Map(postIds.map((id, index) => [id, index]));
-  return [...posts].sort((a, b) => {
-    const orderA = orderMap.get(a.id);
-    const orderB = orderMap.get(b.id);
-    if (orderA === undefined && orderB === undefined) return 0;
-    if (orderA === undefined) return 1;
-    if (orderB === undefined) return -1;
-    return orderA - orderB;
-  });
+  const seriesSet = new Set(seriesIds);
+  const filtered = posts
+    .filter((post) => post.id !== currentId)
+    .filter((post) => post.series?.some((series) => seriesSet.has(series.id)));
+
+  return limit ? filtered.slice(0, limit) : filtered;
 };

@@ -1,0 +1,91 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --bg-alt: #fbfbfa;
+  --text: #37352f;
+  --muted: #787774;
+  --border: #e9e9e7;
+  --line-strong: #d9d8d6;
+  --accent: #0b6e99;
+  --shadow: rgba(17, 24, 39, 0.05);
+  --sidebar-width: 160px;
+  --right-width: 220px;
+  --layout-gap: 32px;
+  --content-width: 1240px;
+  --radius: 6px;
+  --notion-default: #37352f;
+  --notion-gray: #787774;
+  --notion-brown: #9f6b53;
+  --notion-orange: #d9730d;
+  --notion-yellow: #cb912f;
+  --notion-green: #448361;
+  --notion-blue: #337ea9;
+  --notion-purple: #9065b0;
+  --notion-pink: #c14c8a;
+  --notion-red: #d44c47;
+  --pill-bg: #f1f1ef;
+  --code-bg: #f7f6f3;
+  --code-border: #e9e9e7;
+  --code-text: #37352f;
+  --code-meta: #787774;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #191919;
+  --bg-alt: #202020;
+  --text: #e9e9e7;
+  --muted: #9b9a97;
+  --border: #373737;
+  --line-strong: #4a4a4a;
+  --accent: #5ba9d6;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --notion-default: #e9e9e7;
+  --notion-gray: #9b9a97;
+  --notion-brown: #937264;
+  --notion-orange: #ffa344;
+  --notion-yellow: #ffdc49;
+  --notion-green: #4dad84;
+  --notion-blue: #529cca;
+  --notion-purple: #9a6dd7;
+  --notion-pink: #e255a1;
+  --notion-red: #ff7369;
+  --pill-bg: #2c2c2c;
+  --code-bg: #2a2b2e;
+  --code-border: #3a3d42;
+  --code-text: #e9e9e7;
+  --code-meta: #9b9a97;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #191919;
+    --bg-alt: #202020;
+    --text: #e9e9e7;
+    --muted: #9b9a97;
+    --border: #373737;
+    --line-strong: #4a4a4a;
+    --accent: #5ba9d6;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --notion-default: #e9e9e7;
+    --notion-gray: #9b9a97;
+    --notion-brown: #937264;
+    --notion-orange: #ffa344;
+    --notion-yellow: #ffdc49;
+    --notion-green: #4dad84;
+    --notion-blue: #529cca;
+    --notion-purple: #9a6dd7;
+    --notion-pink: #e255a1;
+    --notion-red: #ff7369;
+    --pill-bg: #2c2c2c;
+    --code-bg: #2a2b2e;
+    --code-border: #3a3d42;
+    --code-text: #e9e9e7;
+    --code-meta: #9b9a97;
+  }
+}

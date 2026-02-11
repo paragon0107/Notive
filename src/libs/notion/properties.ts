@@ -3,7 +3,7 @@ import type {
   RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 
-export const getPlainText = (value: RichTextItemResponse[]) =>
+const getPlainText = (value: RichTextItemResponse[]) =>
   value.map((item) => item.plain_text).join("");
 
 export const getTitleProperty = (page: PageObjectResponse) => {
@@ -110,18 +110,6 @@ export const getSelectProperty = (
   return prop?.select?.name ?? undefined;
 };
 
-export const getSelectOption = (
-  page: PageObjectResponse,
-  propertyName: string
-) => {
-  const prop =
-    page.properties[propertyName]?.type === "select"
-      ? page.properties[propertyName]
-      : null;
-  if (!prop?.select) return undefined;
-  return { name: prop.select.name ?? "", color: prop.select.color ?? undefined };
-};
-
 export const getMultiSelectOptions = (
   page: PageObjectResponse,
   propertyName: string
@@ -131,19 +119,8 @@ export const getMultiSelectOptions = (
       ? page.properties[propertyName]
       : null;
   return prop?.multi_select.map((option) => ({
+    id: option.id,
     name: option.name ?? "",
     color: option.color ?? undefined,
   })) ?? [];
-};
-
-export const getSlugProperty = (page: PageObjectResponse) => {
-  const slugProp =
-    page.properties.Slug?.type === "rich_text"
-      ? page.properties.Slug
-      : page.properties.Slug?.type === "title"
-        ? page.properties.Slug
-        : null;
-  if (!slugProp) return undefined;
-  if ("rich_text" in slugProp) return getPlainText(slugProp.rich_text);
-  return getPlainText(slugProp.title);
 };

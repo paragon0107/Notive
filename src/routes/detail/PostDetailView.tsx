@@ -6,45 +6,22 @@ import type { BlockNode } from "@/libs/notion/blocks";
 import { extractPlainText } from "@/libs/notion/blocks";
 import { notionColorClass } from "@/libs/notion/colors";
 
-const buildBreadcrumbs = (post: Post) => {
-  const category = post.categories[0];
-  return [
-    { label: "Home", href: "/" },
-    category
-      ? { label: category.name, href: `/category/${category.slug}` }
-      : { label: "Posts", href: "/posts" },
-    { label: post.title, href: `/post/${post.slug}` },
-  ];
-};
-
 type Props = {
   post: Post;
   blocks: BlockNode[];
-  previous?: Post;
-  next?: Post;
   relatedPosts: Post[];
+  isContentLoading?: boolean;
 };
 
 export const PostDetailView = ({
   post,
   blocks,
-  previous,
-  next,
   relatedPosts,
+  isContentLoading = false,
 }: Props) => {
   const readingMinutes = estimateReadingMinutes(extractPlainText(blocks));
-
   return (
     <article className="post-detail">
-      <nav className="breadcrumbs">
-        {buildBreadcrumbs(post).map((crumb, index) => (
-          <span key={crumb.href}>
-            <Link href={crumb.href}>{crumb.label}</Link>
-            {index < 2 ? " > " : ""}
-          </span>
-        ))}
-      </nav>
-
       <header className="post-detail__header">
         <h1>{post.title}</h1>
         <div className="meta">
@@ -78,40 +55,38 @@ export const PostDetailView = ({
         ) : null}
       </header>
 
-      <section className="post-detail__content">{renderBlocks(blocks)}</section>
-
-      {post.series ? (
-        <section className="post-detail__series">
-          <div className="meta">Series</div>
-          <Link href={`/series/${post.series.slug}`}>{post.series.name}</Link>
-        </section>
-      ) : null}
-
-      <section className="post-detail__nav">
-        {previous ? (
-          <Link href={`/post/${previous.slug}`}>← {previous.title}</Link>
+      <section className="post-detail__content">
+        {isContentLoading ? (
+          <div className="post-detail__content-loading" aria-busy="true">
+            <span className="post-detail__spinner" />
+          </div>
         ) : (
-          <span />
-        )}
-        {next ? (
-          <Link href={`/post/${next.slug}`}>{next.title} →</Link>
-        ) : (
-          <span />
+          renderBlocks(blocks)
         )}
       </section>
 
-      {relatedPosts.length > 0 ? (
-        <section className="post-detail__related">
-          <h3>Related Posts</h3>
+      <section className="post-detail__related">
+        <h3>Related Posts</h3>
+        {relatedPosts.length > 0 ? (
           <ul>
             {relatedPosts.map((related) => (
-              <li key={related.id}>
+              <li key={related.id} className="post-detail__related-item">
                 <Link href={`/post/${related.slug}`}>{related.title}</Link>
+                <p className="post-detail__related-summary">
+                  {related.summary ?? ""}
+                </p>
+                {related.date ? (
+                  <span className="post-detail__related-date">
+                    {formatDate(related.date)}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>
-        </section>
-      ) : null}
+        ) : (
+          <div className="post-detail__related-empty" aria-hidden="true" />
+        )}
+      </section>
 
     </article>
   );

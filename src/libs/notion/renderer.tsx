@@ -60,7 +60,7 @@ export const renderBlocks = (blocks: BlockNode[]) => {
       case "heading_1":
         flushList();
         elements.push(
-          <h2 key={block.id} id={getHeadingId(block.heading_1.rich_text)}>
+          <h2 key={block.id} id={getHeadingId(block.heading_1.rich_text, block.id)}>
             {text(block.heading_1.rich_text)}
           </h2>
         );
@@ -68,7 +68,7 @@ export const renderBlocks = (blocks: BlockNode[]) => {
       case "heading_2":
         flushList();
         elements.push(
-          <h3 key={block.id} id={getHeadingId(block.heading_2.rich_text)}>
+          <h3 key={block.id} id={getHeadingId(block.heading_2.rich_text, block.id)}>
             {text(block.heading_2.rich_text)}
           </h3>
         );
@@ -76,7 +76,7 @@ export const renderBlocks = (blocks: BlockNode[]) => {
       case "heading_3":
         flushList();
         elements.push(
-          <h4 key={block.id} id={getHeadingId(block.heading_3.rich_text)}>
+          <h4 key={block.id} id={getHeadingId(block.heading_3.rich_text, block.id)}>
             {text(block.heading_3.rich_text)}
           </h4>
         );
@@ -114,14 +114,17 @@ export const renderBlocks = (blocks: BlockNode[]) => {
         break;
       case "code":
         flushList();
+        const codeLanguage = block.code.language?.replace(/_/g, " ");
+        const showLanguage =
+          codeLanguage && codeLanguage.toLowerCase() !== "plain text";
         elements.push(
           <pre key={block.id} className="code-block">
-            <div className="code-block__bar">
-              <span />
-              <span />
-              <span />
-            </div>
-            <code>{text(block.code.rich_text)}</code>
+            {showLanguage ? (
+              <div className="code-block__meta">{codeLanguage}</div>
+            ) : null}
+            <code className="code-block__content">
+              {text(block.code.rich_text)}
+            </code>
           </pre>
         );
         break;

@@ -4,7 +4,7 @@ import { DEFAULT_PROFILE_ROLE } from "@/libs/site-config";
 const DEFAULT_ICON = "●";
 
 const resolveContactHref = (type: string, value: string) => {
-  if (!value) return "#";
+  if (!value) return undefined;
   const normalized = type.toLowerCase();
   if (normalized === "email") return `mailto:${value}`;
   if (normalized === "github") return `https://github.com/${value}`;
@@ -20,6 +20,9 @@ type Props = {
 };
 
 export const LeftSidebar = ({ home }: Props) => {
+  const visibleProjects = home.projects.filter((project) => project.name.trim().length > 0);
+  const visibleContacts = home.contacts.filter((contact) => contact.label.trim().length > 0);
+
   return (
     <div className="sidebar-profile">
       <div className="profile">
@@ -38,44 +41,71 @@ export const LeftSidebar = ({ home }: Props) => {
         </div>
       </div>
 
-      {home.projects.length > 0 ? (
+      {visibleProjects.length > 0 ? (
         <section className="profile-section">
           <h3>Projects</h3>
           <ul>
-            {home.projects.map((project) => (
+            {visibleProjects.map((project) => (
               <li key={project.id}>
-                <a href={project.link ?? "#"}>
-                  <span className="project-icon">
-                    {project.iconUrl ? (
-                      <img src={project.iconUrl} alt="" />
-                    ) : (
-                      DEFAULT_ICON
-                    )}
+                {project.link ? (
+                  <a href={project.link} target="_blank" rel="noopener noreferrer">
+                    <span className="project-icon">
+                      {project.iconUrl ? (
+                        <img src={project.iconUrl} alt="" />
+                      ) : (
+                        DEFAULT_ICON
+                      )}
+                    </span>
+                    {project.name}
+                  </a>
+                ) : (
+                  <span className="profile-section__item">
+                    <span className="project-icon">
+                      {project.iconUrl ? (
+                        <img src={project.iconUrl} alt="" />
+                      ) : (
+                        DEFAULT_ICON
+                      )}
+                    </span>
+                    {project.name}
                   </span>
-                  {project.name}
-                </a>
+                )}
               </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      {home.contacts.length > 0 ? (
+      {visibleContacts.length > 0 ? (
         <section className="profile-section">
           <h3>Contact</h3>
           <ul className="contact-list">
-            {home.contacts.map((contact) => (
-              <li key={contact.id}>
-                <a href={resolveContactHref(contact.type, contact.value)}>
-                  {contact.iconUrl ? (
-                    <img src={contact.iconUrl} alt="" />
+            {visibleContacts.map((contact) => {
+              const contactHref = resolveContactHref(contact.type, contact.value);
+              return (
+                <li key={contact.id}>
+                  {contactHref ? (
+                    <a href={contactHref}>
+                      {contact.iconUrl ? (
+                        <img src={contact.iconUrl} alt="" />
+                      ) : (
+                        <span className="contact-icon">{DEFAULT_ICON}</span>
+                      )}
+                      <span>{contact.label}</span>
+                    </a>
                   ) : (
-                    <span className="contact-icon">{DEFAULT_ICON}</span>
+                    <span className="profile-section__item">
+                      {contact.iconUrl ? (
+                        <img src={contact.iconUrl} alt="" />
+                      ) : (
+                        <span className="contact-icon">{DEFAULT_ICON}</span>
+                      )}
+                      <span>{contact.label}</span>
+                    </span>
                   )}
-                  <span>{contact.label}</span>
-                </a>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

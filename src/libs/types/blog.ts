@@ -45,13 +45,6 @@ export type HomeConfig = {
   useNotionProfileAsDefault: boolean;
 };
 
-export type Profile = {
-  name: string;
-  imageUrl?: string;
-  role: string;
-  blogName: string;
-};
-
 export type Post = {
   id: string;
   title: string;
@@ -60,20 +53,12 @@ export type Post = {
   summary?: string;
   thumbnailUrl?: string;
   categories: Category[];
-  series?: Series;
+  series?: Series[];
   authorNames: string[];
 };
 
 export type PostSummary = Post & {
   searchText: string;
-};
-
-export type HomePageData = {
-  home: HomeConfig;
-  posts: PostSummary[];
-  profile: Profile;
-  contacts: Contact[];
-  projects: Project[];
 };
 
 export type TocItem = {

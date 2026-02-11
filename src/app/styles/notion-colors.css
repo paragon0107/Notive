@@ -1,0 +1,49 @@
+.color-default {
+  color: var(--notion-default);
+  border: 1px solid var(--border);
+}
+
+.color-gray {
+  color: var(--notion-gray);
+  border: 1px solid var(--border);
+}
+
+.color-brown {
+  color: var(--notion-brown);
+  border: 1px solid var(--notion-brown);
+}
+
+.color-orange {
+  color: var(--notion-orange);
+  border: 1px solid var(--notion-orange);
+}
+
+.color-yellow {
+  color: var(--notion-yellow);
+  border: 1px solid var(--notion-yellow);
+}
+
+.color-green {
+  color: var(--notion-green);
+  border: 1px solid var(--notion-green);
+}
+
+.color-blue {
+  color: var(--notion-blue);
+  border: 1px solid var(--notion-blue);
+}
+
+.color-purple {
+  color: var(--notion-purple);
+  border: 1px solid var(--notion-purple);
+}
+
+.color-pink {
+  color: var(--notion-pink);
+  border: 1px solid var(--notion-pink);
+}
+
+.color-red {
+  color: var(--notion-red);
+  border: 1px solid var(--notion-red);
+}
