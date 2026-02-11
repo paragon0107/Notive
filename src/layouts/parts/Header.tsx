@@ -23,7 +23,6 @@ export const Header = ({ blogName, categories }: Props) => {
           <Link href="/">{blogName}</Link>
         </div>
         <nav className="header__nav">
-          <Link href="/category">About</Link>
           <ThemeToggle />
           <button
             type="button"
@@ -59,7 +58,6 @@ export const Header = ({ blogName, categories }: Props) => {
         </div>
         <div className="header__menu-section">
           <Link href="/" onClick={closeMenu}>Home</Link>
-          <Link href="/category" onClick={closeMenu}>About</Link>
         </div>
         <div className="header__menu-title">Categories</div>
         <div className="header__menu-section">
