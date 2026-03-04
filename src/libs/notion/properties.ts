@@ -6,6 +6,33 @@ import type {
 const getPlainText = (value: RichTextItemResponse[]) =>
   value.map((item) => item.plain_text).join("");
 
+export type FilePropertyValue = {
+  url: string;
+  expiryTime?: string;
+};
+
+const getFilePropertyValue = (
+  page: PageObjectResponse,
+  propertyName: string
+): FilePropertyValue | undefined => {
+  const prop =
+    page.properties[propertyName]?.type === "files"
+      ? page.properties[propertyName]
+      : null;
+  if (!prop || prop.files.length === 0) return undefined;
+  const file = prop.files[0];
+  if (file.type === "external" && "external" in file) {
+    return { url: file.external.url };
+  }
+  if (file.type === "file" && "file" in file) {
+    return {
+      url: file.file.url,
+      expiryTime: file.file.expiry_time,
+    };
+  }
+  return undefined;
+};
+
 export const getTitleProperty = (page: PageObjectResponse) => {
   const titleProp =
     page.properties.Title?.type === "title"
@@ -53,16 +80,13 @@ export const getFilesProperty = (
   page: PageObjectResponse,
   propertyName: string
 ) => {
-  const prop =
-    page.properties[propertyName]?.type === "files"
-      ? page.properties[propertyName]
-      : null;
-  if (!prop || prop.files.length === 0) return undefined;
-  const file = prop.files[0];
-  if (file.type === "external" && "external" in file) return file.external.url;
-  if (file.type === "file" && "file" in file) return file.file.url;
-  return undefined;
+  return getFilePropertyValue(page, propertyName)?.url;
 };
+
+export const getFilesPropertyWithExpiry = (
+  page: PageObjectResponse,
+  propertyName: string
+) => getFilePropertyValue(page, propertyName);
 
 export const getRelationPropertyIds = (
   page: PageObjectResponse,

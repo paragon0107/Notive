@@ -38,6 +38,7 @@ export type HomeConfig = {
   aboutMe: string;
   profileName?: string;
   profileImageUrl?: string;
+  profileImageExpiryTime?: string;
   categories: Category[];
   projects: Project[];
   contacts: Contact[];

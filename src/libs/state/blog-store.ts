@@ -21,7 +21,7 @@ type BlogStoreState = {
   isPostLoading: boolean;
   errorMessage?: string;
   ensureDatabaseMap: () => Promise<NotionDatabaseMap>;
-  ensureBootstrap: () => Promise<void>;
+  ensureBootstrap: (force?: boolean) => Promise<void>;
   ensurePostDetail: (slug: string) => Promise<void>;
 };
 
@@ -71,9 +71,11 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
     set({ databaseMap: fetchedDatabaseMap, databaseMapFetchedAt: Date.now() });
     return fetchedDatabaseMap;
   },
-  ensureBootstrap: async () => {
+  ensureBootstrap: async (force = false) => {
     const { home, bootstrapFetchedAt } = get();
-    if (home && isWithinTtl(bootstrapFetchedAt, CLIENT_BOOTSTRAP_CACHE_TTL_MS)) return;
+    if (!force && home && isWithinTtl(bootstrapFetchedAt, CLIENT_BOOTSTRAP_CACHE_TTL_MS)) {
+      return;
+    }
 
     if (!bootstrapPromise) {
       bootstrapPromise = (async () => {

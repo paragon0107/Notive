@@ -13,6 +13,7 @@ import { mapCategoryOption } from "@/apis/notion/queries/shared/mappers";
 import {
   getCheckboxProperty,
   getFilesProperty,
+  getFilesPropertyWithExpiry,
   getMultiSelectOptions,
   getNumberProperty,
   getRelationPropertyIds,
@@ -87,12 +88,14 @@ export const fetchHomeConfig = async (fallback: HomeConfig): Promise<HomeConfig>
       index
     )
   );
+  const profileImage = getFilesPropertyWithExpiry(page, "ProfileImage");
 
   return {
     blogName: getRichTextProperty(page, "BlogName") || fallback.blogName,
     aboutMe: getRichTextProperty(page, "AboutMe") || fallback.aboutMe,
     profileName: getRichTextProperty(page, "ProfileName") || fallback.profileName,
-    profileImageUrl: getFilesProperty(page, "ProfileImage") || fallback.profileImageUrl,
+    profileImageUrl: profileImage?.url || fallback.profileImageUrl,
+    profileImageExpiryTime: profileImage?.expiryTime ?? fallback.profileImageExpiryTime,
     categories,
     projects,
     contacts,

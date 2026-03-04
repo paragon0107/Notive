@@ -1,5 +1,9 @@
+"use client";
+
+import { useRef } from "react";
 import type { HomeConfig } from "@/libs/types/blog";
 import { DEFAULT_PROFILE_ROLE } from "@/libs/site-config";
+import { useBlogStore } from "@/libs/state/blog-store";
 
 const DEFAULT_ICON = "●";
 
@@ -36,8 +40,17 @@ type Props = {
 };
 
 export const RightSidebar = ({ home }: Props) => {
+  const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
+  const profileImageRetryRef = useRef<string | undefined>(undefined);
   const visibleProjects = home.projects.filter((project) => project.name.trim().length > 0);
   const visibleContacts = home.contacts.filter((contact) => contact.name.trim().length > 0);
+  const handleProfileImageError = () => {
+    const currentUrl = home.profileImageUrl;
+    if (!currentUrl || profileImageRetryRef.current === currentUrl) return;
+
+    profileImageRetryRef.current = currentUrl;
+    void ensureBootstrap(true);
+  };
 
   return (
     <div className="sidebar-profile">
@@ -47,6 +60,7 @@ export const RightSidebar = ({ home }: Props) => {
             src={home.profileImageUrl}
             alt={home.profileName ?? "profile"}
             className="profile__image"
+            onError={handleProfileImageError}
           />
         ) : (
           <div className="profile__image profile__placeholder" />
