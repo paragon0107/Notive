@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import type { BlockNode } from "@/libs/notion/blocks";
 import type { HomeConfig, Post } from "@/libs/types/blog";
-import type { NotionDatabaseMap } from "@/libs/types/blog-store";
+import type {
+  BlogBootstrapPayload,
+  BlogPostDetailPayload,
+  NotionDatabaseMap,
+} from "@/libs/types/blog-store";
 import {
   fetchBlogBootstrap,
   fetchBlogDatabaseMap,
@@ -23,6 +27,8 @@ type BlogStoreState = {
   ensureDatabaseMap: () => Promise<NotionDatabaseMap>;
   ensureBootstrap: (force?: boolean) => Promise<void>;
   ensurePostDetail: (slug: string) => Promise<void>;
+  hydrateBootstrap: (payload: BlogBootstrapPayload) => void;
+  hydratePostDetail: (payload: BlogPostDetailPayload, requestedSlug?: string) => void;
 };
 
 let bootstrapPromise: Promise<void> | null = null;
@@ -139,8 +145,6 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
       set({ isPostLoading: true, errorMessage: undefined });
 
       try {
-        await get().ensureDatabaseMap();
-
         const payload = await fetchBlogPostDetail(normalizedSlug);
         const nextPosts = mergePosts(get().posts, payload.posts);
         const nextPostBySlug = buildPostBySlugMap(nextPosts);
@@ -177,5 +181,48 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
 
     postRequestPromises.set(normalizedSlug, requestPromise);
     return requestPromise;
+  },
+  hydrateBootstrap: (payload) => {
+    const nextPosts = mergePosts(get().posts, payload.posts);
+    const fetchedAt = Date.now();
+
+    set({
+      databaseMap: payload.databaseMap,
+      databaseMapFetchedAt: fetchedAt,
+      home: payload.home,
+      bootstrapFetchedAt: fetchedAt,
+      posts: nextPosts,
+      postBySlug: buildPostBySlugMap(nextPosts),
+      isBootstrapLoading: false,
+      errorMessage: undefined,
+    });
+  },
+  hydratePostDetail: (payload, requestedSlug) => {
+    const nextPosts = mergePosts(get().posts, payload.posts);
+    const nextPostBySlug = buildPostBySlugMap(nextPosts);
+    const normalizedRequestedSlug = requestedSlug?.trim();
+    const fetchedAt = Date.now();
+    nextPostBySlug[payload.post.slug] = payload.post;
+    if (normalizedRequestedSlug) {
+      nextPostBySlug[normalizedRequestedSlug] = payload.post;
+    }
+
+    set({
+      databaseMap: payload.databaseMap,
+      databaseMapFetchedAt: fetchedAt,
+      posts: nextPosts,
+      postBySlug: nextPostBySlug,
+      postBlocksById: {
+        ...get().postBlocksById,
+        [payload.post.id]: payload.blocks,
+      },
+      postFetchedAtBySlug: {
+        ...get().postFetchedAtBySlug,
+        [payload.post.slug]: fetchedAt,
+        ...(normalizedRequestedSlug ? { [normalizedRequestedSlug]: fetchedAt } : {}),
+      },
+      isPostLoading: false,
+      errorMessage: undefined,
+    });
   },
 }));

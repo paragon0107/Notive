@@ -1,22 +1,25 @@
 import type { Metadata } from "next";
-import { fetchCategories } from "@/apis/notion/queries";
+import { getBlogBootstrapPayload } from "@/apis/blog/server/bootstrap";
+import type { BlogBootstrapPayload } from "@/libs/types/blog-store";
 import { buildMetadata } from "@/libs/seo";
 import { CategoryDetailPageRoute } from "@/routes/category/CategoryDetailPageRoute";
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+  const { slug } = await params;
+
   try {
-    const categories = await fetchCategories();
-    const category = categories.find((item) => item.slug === params.slug);
+    const bootstrap = await getBlogBootstrapPayload();
+    const category = bootstrap.home.categories.find((item) => item.slug === slug);
 
     if (!category) {
       return buildMetadata({
         title: "Category not found",
         description: "요청한 카테고리를 찾을 수 없습니다.",
-        path: `/category/${params.slug}`,
+        path: `/category/${slug}`,
         noIndex: true,
       });
     }
@@ -31,12 +34,21 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
     });
   } catch {
     return buildMetadata({
-      title: `Category: ${params.slug}`,
-      path: `/category/${params.slug}`,
+      title: `Category: ${slug}`,
+      path: `/category/${slug}`,
     });
   }
 };
 
-export default function CategoryDetailPage({ params }: Props) {
-  return <CategoryDetailPageRoute slug={params.slug} />;
+export default async function CategoryDetailPage({ params }: Props) {
+  const { slug } = await params;
+  let initialBootstrap: BlogBootstrapPayload | undefined;
+
+  try {
+    initialBootstrap = await getBlogBootstrapPayload();
+  } catch {
+    initialBootstrap = undefined;
+  }
+
+  return <CategoryDetailPageRoute slug={slug} initialBootstrap={initialBootstrap} />;
 }

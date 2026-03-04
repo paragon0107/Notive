@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { BlogBootstrapPayload } from "@/libs/types/blog-store";
 import { useBlogStore } from "@/libs/state/blog-store";
 
 const BOOTSTRAP_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
@@ -13,11 +14,17 @@ const parseExpiryTime = (value?: string) => {
   return timestamp;
 };
 
-export const useBootstrapState = () => {
+export const useBootstrapState = (initialBootstrap?: BlogBootstrapPayload) => {
   const home = useBlogStore((state) => state.home);
   const isBootstrapLoading = useBlogStore((state) => state.isBootstrapLoading);
   const errorMessage = useBlogStore((state) => state.errorMessage);
   const ensureBootstrap = useBlogStore((state) => state.ensureBootstrap);
+  const hydrateBootstrap = useBlogStore((state) => state.hydrateBootstrap);
+
+  useEffect(() => {
+    if (!initialBootstrap) return;
+    hydrateBootstrap(initialBootstrap);
+  }, [hydrateBootstrap, initialBootstrap]);
 
   useEffect(() => {
     void ensureBootstrap();

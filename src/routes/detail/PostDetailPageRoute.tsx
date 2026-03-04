@@ -9,43 +9,61 @@ import { getRelatedPosts, getSeriesPosts } from "@/libs/posts";
 import { getFallbackHomeConfig } from "@/libs/home-config";
 import { PageLoader } from "@/components/ui/page-loader";
 import { extractTocFromBlocks } from "@/libs/notion/blocks";
+import type { BlogBootstrapPayload, BlogPostDetailPayload } from "@/libs/types/blog-store";
 
 type Props = {
   slug: string;
+  initialBootstrap?: BlogBootstrapPayload;
+  initialPostDetail?: BlogPostDetailPayload;
 };
 
-export const PostDetailPageRoute = ({ slug }: Props) => {
-  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
+export const PostDetailPageRoute = ({ slug, initialBootstrap, initialPostDetail }: Props) => {
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState(initialBootstrap);
   const posts = useBlogStore((state) => state.posts);
   const postBySlug = useBlogStore((state) => state.postBySlug);
   const postBlocksById = useBlogStore((state) => state.postBlocksById);
   const isPostLoading = useBlogStore((state) => state.isPostLoading);
   const ensurePostDetail = useBlogStore((state) => state.ensurePostDetail);
+  const hydratePostDetail = useBlogStore((state) => state.hydratePostDetail);
+
+  useEffect(() => {
+    if (initialPostDetail) {
+      hydratePostDetail(initialPostDetail, slug);
+    }
+  }, [hydratePostDetail, initialPostDetail, slug]);
 
   useEffect(() => {
     void ensurePostDetail(slug);
   }, [ensurePostDetail, slug]);
 
-  const post = postBySlug[slug];
-  const blocks = post ? postBlocksById[post.id] ?? [] : [];
+  const resolvedPost = postBySlug[slug] ?? initialPostDetail?.post;
+  const fallbackBlocks =
+    resolvedPost && initialPostDetail?.post.id === resolvedPost.id
+      ? initialPostDetail.blocks
+      : [];
+  const blocks = resolvedPost ? postBlocksById[resolvedPost.id] ?? fallbackBlocks : [];
+  const resolvedPosts =
+    posts.length > 0
+      ? posts
+      : (initialBootstrap?.posts ?? initialPostDetail?.posts ?? posts);
   const tocItems = useMemo(() => extractTocFromBlocks(blocks), [blocks]);
 
   const categoryRelatedPosts = useMemo(() => {
-    if (!post) return [];
+    if (!resolvedPost) return [];
 
     return getRelatedPosts(
-      posts,
-      post.categories.map((category) => category.id),
-      post.id
+      resolvedPosts,
+      resolvedPost.categories.map((category) => category.id),
+      resolvedPost.id
     );
-  }, [post, posts]);
+  }, [resolvedPost, resolvedPosts]);
 
   const seriesPosts = useMemo(() => {
-    const seriesIds = post?.series?.map((series) => series.id) ?? [];
+    const seriesIds = resolvedPost?.series?.map((series) => series.id) ?? [];
     if (seriesIds.length === 0) return [];
 
-    return getSeriesPosts(posts, seriesIds, post.id, 6);
-  }, [post, posts]);
+    return getSeriesPosts(resolvedPosts, seriesIds, resolvedPost.id, 6);
+  }, [resolvedPost, resolvedPosts]);
 
   const relatedPosts = useMemo(() => {
     if (seriesPosts.length > 0) return seriesPosts;
@@ -53,13 +71,13 @@ export const PostDetailPageRoute = ({ slug }: Props) => {
   }, [seriesPosts, categoryRelatedPosts]);
 
   const isContentLoading = Boolean(isPostLoading && blocks.length === 0);
-  const resolvedHome = home ?? getFallbackHomeConfig();
+  const resolvedHome = home ?? initialBootstrap?.home ?? getFallbackHomeConfig();
 
-  if (!post && (isBootstrapLoading || isPostLoading || !errorMessage)) {
+  if (!resolvedPost && (isBootstrapLoading || isPostLoading || !errorMessage)) {
     return <PageLoader />;
   }
 
-  if (!post) {
+  if (!resolvedPost) {
     return (
       <MainLayout home={resolvedHome}>
         <section className="post-detail">
@@ -79,7 +97,7 @@ export const PostDetailPageRoute = ({ slug }: Props) => {
       rightPanelMode="toc"
     >
       <PostDetailView
-        post={post}
+        post={resolvedPost}
         blocks={blocks}
         relatedPosts={relatedPosts}
         isContentLoading={isContentLoading}

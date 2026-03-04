@@ -1,31 +1,26 @@
 import type { Metadata } from "next";
+import { getBlogBootstrapPayload } from "@/apis/blog/server/bootstrap";
 import {
-  fetchPostBySlug,
-  fetchPosts,
-  findPostBySlugFromList,
-} from "@/apis/notion/queries/posts";
+  getBlogPostDetailPayload,
+  PostNotFoundError,
+} from "@/apis/blog/server/post-detail";
+import type {
+  BlogBootstrapPayload,
+  BlogPostDetailPayload,
+} from "@/libs/types/blog-store";
 import { buildMetadata } from "@/libs/seo";
 import { PostDetailPageRoute } from "@/routes/detail/PostDetailPageRoute";
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
-  try {
-    const postBySlug = await fetchPostBySlug(params.slug);
-    const post =
-      postBySlug ?? findPostBySlugFromList(await fetchPosts(), params.slug);
+  const { slug } = await params;
 
-    if (!post) {
-      return buildMetadata({
-        title: "Post not found",
-        description: "요청한 글을 찾을 수 없습니다.",
-        path: `/post/${params.slug}`,
-        type: "article",
-        noIndex: true,
-      });
-    }
+  try {
+    const payload = await getBlogPostDetailPayload(slug);
+    const post = payload.post;
 
     return buildMetadata({
       title: post.title,
@@ -35,15 +30,38 @@ export const generateMetadata = async ({ params }: Props): Promise<Metadata> => 
       type: "article",
       keywords: post.categories.map((category) => category.name),
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof PostNotFoundError) {
+      return buildMetadata({
+        title: "Post not found",
+        description: "요청한 글을 찾을 수 없습니다.",
+        path: `/post/${slug}`,
+        type: "article",
+        noIndex: true,
+      });
+    }
+
     return buildMetadata({
-      title: `Post: ${params.slug}`,
-      path: `/post/${params.slug}`,
+      title: `Post: ${slug}`,
+      path: `/post/${slug}`,
       type: "article",
     });
   }
 };
 
-export default function PostDetailPage({ params }: Props) {
-  return <PostDetailPageRoute slug={params.slug} />;
+export default async function PostDetailPage({ params }: Props) {
+  const { slug } = await params;
+
+  const [initialBootstrap, initialPostDetail] = await Promise.all([
+    getBlogBootstrapPayload().catch(() => undefined as BlogBootstrapPayload | undefined),
+    getBlogPostDetailPayload(slug).catch(() => undefined as BlogPostDetailPayload | undefined),
+  ]);
+
+  return (
+    <PostDetailPageRoute
+      slug={slug}
+      initialBootstrap={initialBootstrap}
+      initialPostDetail={initialPostDetail}
+    />
+  );
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getBlogBootstrapPayload } from "@/apis/blog/server/bootstrap";
+import type { BlogBootstrapPayload } from "@/libs/types/blog-store";
 import { buildMetadata } from "@/libs/seo";
 import { HomePageRoute } from "@/routes/feed/HomePageRoute";
 
@@ -9,7 +11,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 type Props = {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 const readCategorySlug = (searchParams?: Record<string, string | string[] | undefined>) => {
@@ -18,6 +20,20 @@ const readCategorySlug = (searchParams?: Record<string, string | string[] | unde
   return undefined;
 };
 
-export default function HomePage({ searchParams }: Props) {
-  return <HomePageRoute requestedCategorySlug={readCategorySlug(searchParams)} />;
+export default async function HomePage({ searchParams }: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  let initialBootstrap: BlogBootstrapPayload | undefined;
+
+  try {
+    initialBootstrap = await getBlogBootstrapPayload();
+  } catch {
+    initialBootstrap = undefined;
+  }
+
+  return (
+    <HomePageRoute
+      requestedCategorySlug={readCategorySlug(resolvedSearchParams)}
+      initialBootstrap={initialBootstrap}
+    />
+  );
 }

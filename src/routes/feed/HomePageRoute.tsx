@@ -7,21 +7,25 @@ import { useBlogStore } from "@/libs/state/blog-store";
 import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { buildPostSummaries } from "@/libs/post-summary";
 import { PageLoader } from "@/components/ui/page-loader";
+import type { BlogBootstrapPayload } from "@/libs/types/blog-store";
 
 type Props = {
   requestedCategorySlug?: string;
+  initialBootstrap?: BlogBootstrapPayload;
 };
 
-export const HomePageRoute = ({ requestedCategorySlug }: Props) => {
-  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
+export const HomePageRoute = ({ requestedCategorySlug, initialBootstrap }: Props) => {
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState(initialBootstrap);
   const posts = useBlogStore((state) => state.posts);
+  const resolvedHome = home ?? initialBootstrap?.home;
+  const resolvedPosts = posts.length > 0 ? posts : (initialBootstrap?.posts ?? posts);
 
-  const summaries = useMemo(() => buildPostSummaries(posts), [posts]);
+  const summaries = useMemo(() => buildPostSummaries(resolvedPosts), [resolvedPosts]);
 
   const normalizedRequestedCategorySlug = requestedCategorySlug?.trim();
   const hasCategoryFilter = Boolean(
     normalizedRequestedCategorySlug &&
-      home?.categories.some((category) => category.slug === normalizedRequestedCategorySlug)
+      resolvedHome?.categories.some((category) => category.slug === normalizedRequestedCategorySlug)
   );
   const activeCategorySlug = hasCategoryFilter ? normalizedRequestedCategorySlug : undefined;
   const filteredPosts = activeCategorySlug
@@ -30,22 +34,22 @@ export const HomePageRoute = ({ requestedCategorySlug }: Props) => {
       )
     : summaries;
 
-  if (!home && isBootstrapLoading) {
+  if (!resolvedHome && isBootstrapLoading) {
     return <PageLoader />;
   }
 
-  if (!home) {
+  if (!resolvedHome) {
     return <div className="feed__empty">{errorMessage || ""}</div>;
   }
 
   return (
     <MainLayout
-      home={home}
-      leftCategories={home.categories}
+      home={resolvedHome}
+      leftCategories={resolvedHome.categories}
       categoryFilterPath="/"
       activeCategorySlug={activeCategorySlug}
     >
-      <FeedContainer posts={filteredPosts} home={home} />
+      <FeedContainer posts={filteredPosts} home={resolvedHome} />
     </MainLayout>
   );
 };

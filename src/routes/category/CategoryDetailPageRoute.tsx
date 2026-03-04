@@ -8,36 +8,40 @@ import { useBootstrapState } from "@/libs/state/use-bootstrap-state";
 import { filterPostsByCategorySlug } from "@/libs/posts";
 import { buildPostSummaries } from "@/libs/post-summary";
 import { PageLoader } from "@/components/ui/page-loader";
+import type { BlogBootstrapPayload } from "@/libs/types/blog-store";
 
 type Props = {
   slug: string;
+  initialBootstrap?: BlogBootstrapPayload;
 };
 
-export const CategoryDetailPageRoute = ({ slug }: Props) => {
-  const { home, isBootstrapLoading, errorMessage } = useBootstrapState();
+export const CategoryDetailPageRoute = ({ slug, initialBootstrap }: Props) => {
+  const { home, isBootstrapLoading, errorMessage } = useBootstrapState(initialBootstrap);
   const posts = useBlogStore((state) => state.posts);
+  const resolvedHome = home ?? initialBootstrap?.home;
+  const resolvedPosts = posts.length > 0 ? posts : (initialBootstrap?.posts ?? posts);
 
   const category = useMemo(
-    () => home?.categories.find((item) => item.slug === slug),
-    [home, slug]
+    () => resolvedHome?.categories.find((item) => item.slug === slug),
+    [resolvedHome, slug]
   );
 
   const summaries = useMemo(() => {
-    const filtered = filterPostsByCategorySlug(posts, slug);
+    const filtered = filterPostsByCategorySlug(resolvedPosts, slug);
     return buildPostSummaries(filtered);
-  }, [posts, slug]);
+  }, [resolvedPosts, slug]);
 
-  if (!home && isBootstrapLoading) {
+  if (!resolvedHome && isBootstrapLoading) {
     return <PageLoader />;
   }
 
-  if (!home) {
+  if (!resolvedHome) {
     return <div className="feed__empty">{errorMessage || "데이터를 불러오지 못했습니다."}</div>;
   }
 
   if (!category) {
     return (
-      <MainLayout home={home}>
+      <MainLayout home={resolvedHome}>
         <section className="category-detail">
           <h1>Category not found</h1>
         </section>
@@ -46,13 +50,13 @@ export const CategoryDetailPageRoute = ({ slug }: Props) => {
   }
 
   return (
-    <MainLayout home={home} leftCategories={home.categories}>
+    <MainLayout home={resolvedHome} leftCategories={resolvedHome.categories}>
       <section className="category-detail">
         <div className="category-detail__header">
           <h1>{category.name}</h1>
           {category.description ? <p className="meta">{category.description}</p> : null}
         </div>
-        <FeedContainer posts={summaries} home={home} />
+        <FeedContainer posts={summaries} home={resolvedHome} />
       </section>
     </MainLayout>
   );
