@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   fetchPostBlocks,
   fetchPostBySlug,
@@ -9,7 +9,7 @@ import { getDatabaseMap } from "@/apis/notion/queries/database-map";
 import { getOrSetMemoryCache } from "@/libs/server-memory-cache";
 
 type Context = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 const POST_DETAIL_CACHE_TTL_MS = 30 * 1000;
@@ -47,9 +47,9 @@ const loadPostDetailPayload = async (slug: string) => {
   };
 };
 
-export async function GET(_: Request, context: Context) {
+export async function GET(_: NextRequest, context: Context) {
   try {
-    const slug = context.params.slug;
+    const { slug } = await context.params;
     const payload = await getOrSetMemoryCache(
       toPostDetailCacheKey(slug),
       POST_DETAIL_CACHE_TTL_MS,
