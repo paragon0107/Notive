@@ -1,67 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  fetchPostBlocks,
-  fetchPostBySlug,
-  fetchPosts,
-  findPostBySlugFromList,
-} from "@/apis/notion/queries/posts";
-import { getDatabaseMap } from "@/apis/notion/queries/database-map";
-import { getOrSetMemoryCache } from "@/libs/server-memory-cache";
+  getBlogPostDetailPayload,
+  PostNotFoundError,
+  POST_DETAIL_REVALIDATE_SECONDS,
+} from "@/apis/blog/server/post-detail";
 
 type Context = {
   params: Promise<{ slug: string }>;
 };
 
-const POST_DETAIL_CACHE_TTL_MS = 30 * 1000;
-const POST_DETAIL_CACHE_SECONDS = Math.floor(POST_DETAIL_CACHE_TTL_MS / 1000);
-
-class PostNotFoundError extends Error {
-  constructor() {
-    super("Post not found.");
-  }
-}
-
-const toPostDetailCacheKey = (slug: string) =>
-  `api:blog:post:${slug.trim().toLowerCase()}`;
-
-const loadPostDetailPayload = async (slug: string) => {
-  const [databaseMap, posts, postBySlug] = await Promise.all([
-    getDatabaseMap(),
-    fetchPosts(),
-    fetchPostBySlug(slug),
-  ]);
-
-  const post = postBySlug ?? findPostBySlugFromList(posts, slug);
-
-  if (!post) {
-    throw new PostNotFoundError();
-  }
-
-  const blocks = await fetchPostBlocks(post.id);
-
-  return {
-    databaseMap,
-    posts,
-    post,
-    blocks,
-  };
-};
-
 export async function GET(_: NextRequest, context: Context) {
   try {
     const { slug } = await context.params;
-    const payload = await getOrSetMemoryCache(
-      toPostDetailCacheKey(slug),
-      POST_DETAIL_CACHE_TTL_MS,
-      () => loadPostDetailPayload(slug)
-    );
+    const payload = await getBlogPostDetailPayload(slug);
 
     return NextResponse.json(
       payload,
       {
         status: 200,
         headers: {
-          "Cache-Control": `public, s-maxage=${POST_DETAIL_CACHE_SECONDS}, stale-while-revalidate=${POST_DETAIL_CACHE_SECONDS * 2}`,
+          "Cache-Control": `public, s-maxage=${POST_DETAIL_REVALIDATE_SECONDS}, stale-while-revalidate=${POST_DETAIL_REVALIDATE_SECONDS * 3}`,
         },
       },
     );
